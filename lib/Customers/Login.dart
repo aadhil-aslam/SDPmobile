@@ -5,8 +5,6 @@ import 'package:sdp/Customers/CustomerPage.dart';
 import 'package:sdp/Customers/registration.dart';
 
 import '../auth.dart';
-import 'CustomerPage.dart';
-
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -15,36 +13,51 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[700],
+      ),
+    );
+  }
+
+  bool _validateEmail = false;
+  bool _validatePW = false;
+
+  bool loggedIn = false;
 
   String? errorMessage = "";
 
   bool isLogin = true;
 
-  var _NameController = TextEditingController();
-  var _vehicleNumberController = TextEditingController();
   var _emailController = TextEditingController();
   var _passwordController = TextEditingController();
 
-  Future<void> signInWithEmailAndPassword() async{
+  Future<void> signInWithEmailAndPassword() async {
     try {
-      await
-      Auth().signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text);
+      await Auth().signInWithEmailAndPassword(
+          email: _emailController.text, password: _passwordController.text);
+      setState(() {
+        loggedIn = true;
+        print('loggedIn');
+      });
       print('pass');
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CustomerPage()));
     } on FirebaseAuthException catch (e) {
       print('fail');
       setState(() {
+        _showSuccessSnackbar(e.toString());
         errorMessage = e.message;
       });
     }
   }
 
-  Future<void> createUserWithEmailAndPassword() async{
+  Future<void> createUserWithEmailAndPassword() async {
     try {
       await Auth().createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text);
+          email: _emailController.text, password: _passwordController.text);
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -52,17 +65,13 @@ class _LoginState extends State<Login> {
     }
   }
 
-  Widget _errorMessage(){
+  Widget _errorMessage() {
     return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
   }
-
 
   var _contactNameController = TextEditingController();
   var _contactNumberController = TextEditingController();
   var _contactEmailController = TextEditingController();
-  //
-  // bool _validateName = false;
-  bool _validateNumber = false;
 
   bool quota = false;
 
@@ -71,86 +80,86 @@ class _LoginState extends State<Login> {
   _ValidateQuota() async {
     free
         ? setState(() {
-      quota = true;
-      // showDialog(
-      //     context: context,
-      //     builder: (parm) {
-      //       return AlertDialog(
-      //         title: Column(
-      //           children: const [
-      //             Text(
-      //               'Avaliable limit',
-      //               style:
-      //                   TextStyle(color: Colors.blueGrey, fontSize: 18),
-      //             ),
-      //             SizedBox(
-      //               height: 20,
-      //             ),
-      //             Text(
-      //               '5 liters',
-      //               style: TextStyle(color: Colors.green, fontSize: 18),
-      //             ),
-      //             // SizedBox(
-      //             //   height: 20,
-      //             // ),
-      //             // TextButton(
-      //             //   onPressed: () {
-      //             //   },
-      //             //   child: Text('5 liters',
-      //             //       style:
-      //             //       TextStyle(color: Colors.green, fontSize: 18)),
-      //             // ),
-      //           ],
-      //         ),
-      //       );
-      //     });
-    })
+            quota = true;
+            // showDialog(
+            //     context: context,
+            //     builder: (parm) {
+            //       return AlertDialog(
+            //         title: Column(
+            //           children: const [
+            //             Text(
+            //               'Avaliable limit',
+            //               style:
+            //                   TextStyle(color: Colors.blueGrey, fontSize: 18),
+            //             ),
+            //             SizedBox(
+            //               height: 20,
+            //             ),
+            //             Text(
+            //               '5 liters',
+            //               style: TextStyle(color: Colors.green, fontSize: 18),
+            //             ),
+            //             // SizedBox(
+            //             //   height: 20,
+            //             // ),
+            //             // TextButton(
+            //             //   onPressed: () {
+            //             //   },
+            //             //   child: Text('5 liters',
+            //             //       style:
+            //             //       TextStyle(color: Colors.green, fontSize: 18)),
+            //             // ),
+            //           ],
+            //         ),
+            //       );
+            //     });
+          })
         : showDialog(
-        context: context,
-        builder: (parm) {
-          return AlertDialog(
-            title: Column(
-              children: const [
-                Text(
-                  'No quota available',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 18),
+            context: context,
+            builder: (parm) {
+              return AlertDialog(
+                title: Column(
+                  children: const [
+                    Text(
+                      'No quota available',
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 18),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Icon(
+                      Icons.cancel_outlined,
+                      size: 70,
+                      color: Colors.red,
+                    )
+                  ],
                 ),
-                SizedBox(
-                  height: 20,
-                ),
-                Icon(
-                  Icons.cancel_outlined,
-                  size: 70,
-                  color: Colors.red,
-                )
-              ],
-            ),
-          );
-        });
+              );
+            });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    //   appBar: AppBar(
-    //   backgroundColor: Colors.red[700],
-    //   title: const Text(
-    //     'PowerFuel ',
-    //     style: TextStyle(color: Colors.white),
-    //   ),
-    //   // actions: <Widget>[
-    //   //   IconButton(
-    //   //     icon: const Icon(
-    //   //         Icons.search),
-    //   //     onPressed: () {
-    //   //       setState(() {
-    //   //       });
-    //   //     },
-    //   //   ),
-    //   // ],
-    //   //centerTitle: true,
-    //   elevation: 0.0,
-    // ),
+      //   appBar: AppBar(
+      //   backgroundColor: Colors.red[700],
+      //   title: const Text(
+      //     'PowerFuel ',
+      //     style: TextStyle(color: Colors.white),
+      //   ),
+      //   // actions: <Widget>[
+      //   //   IconButton(
+      //   //     icon: const Icon(
+      //   //         Icons.search),
+      //   //     onPressed: () {
+      //   //       setState(() {
+      //   //       });
+      //   //     },
+      //   //   ),
+      //   // ],
+      //   //centerTitle: true,
+      //   elevation: 0.0,
+      // ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(18.0),
@@ -279,42 +288,44 @@ class _LoginState extends State<Login> {
                     height: 18.0,
                   ),
                   TextField(
-                    //enabled: quota ? true : false,
+                      //enabled: quota ? true : false,
                       controller: _emailController,
                       //keyboardType: TextInputType.number,
                       // inputFormatters: <TextInputFormatter>[
                       //   FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
                       // ],
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
                         isDense: true,
                         border: OutlineInputBorder(),
                         hintText: 'Enter Email',
                         labelText: 'Email',
-                          errorText:
-                          'Invalid Email or Password'
+                        errorText:
+                            _validateEmail ? 'Email Can\'t Be Empty' : null,
                       )),
                   SizedBox(
                     height: 18.0,
                   ),
                   TextField(
+                    obscureText: true,
                     //enabled: quota ? true : false,
-                      controller: _passwordController,
-                      // keyboardType: TextInputType.number,
-                      // inputFormatters: <TextInputFormatter>[
-                      //   FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
-                      // ],
-                      decoration: const InputDecoration(
-                        //filled: true,
-                        fillColor: const Color(0xFFFFFFFF),
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        hintText: 'Enter Password',
-                        labelText: 'Password',
-                          errorText:
-                          'Invalid Email or Password'
-                      )),
+                    controller: _passwordController,
+                    // keyboardType: TextInputType.number,
+                    // inputFormatters: <TextInputFormatter>[
+                    //   FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
+                    // ],
+                    decoration: InputDecoration(
+                      //filled: true,
+                      fillColor: const Color(0xFFFFFFFF),
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter Password',
+                      labelText: 'Password',
+                      errorText:
+                          _validatePW ? 'Password Can\'t Be Empty' : null,
+                    ),
+                  ),
                   SizedBox(
                     height: 10.0,
                   ),
@@ -322,7 +333,9 @@ class _LoginState extends State<Login> {
                     onPressed: () {
                       //forgot password screen
                     },
-                    child: const Text('Forgot Password',),
+                    child: const Text(
+                      'Forgot Password',
+                    ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -334,39 +347,54 @@ class _LoginState extends State<Login> {
                                 backgroundColor: Colors.blueGrey,
                                 textStyle: const TextStyle(fontSize: 15)),
                             onPressed: ()
-                            //async
-                            {
+                                //async
+                                {
+                              setState(() {
+                                _emailController.text.isEmpty
+                                    ? _validateEmail = true
+                                    : _validateEmail = false;
+                                _passwordController.text.isEmpty
+                                    ? _validatePW = true
+                                    : _validatePW = false;
+                              });
                               print("click");
-                              signInWithEmailAndPassword();
-                            //   setState(() {
-                            //     // _contactNameController.text.isEmpty
-                            //     //     ? _validateName = true
-                            //     //     : _validateName = false;
-                            //     _contactNumberController.text.isEmpty
-                            //         ? _validateNumber = true
-                            //         : _validateNumber = false;
-                            //   });
-                            //   if (
-                            //   //_validateName == false &&
-                            //   _validateNumber == false) {
-                            //     //InsertContacts
-                            //     // var _contact = Contact();
-                            //     // _contact.name = _contactNameController.text;
-                            //     // _contact.number = _contactNumberController.text;
-                            //     // _contact.email = _contactEmailController.text;
-                            //     // _contact.photo = ImagePath ?? "";
-                            //     // print(_contact.name);
-                            //     // print(_contact.number);
-                            //     // print(_contact.email);
-                            //     // print(_contact.photo);
-                            //     // var result =
-                            //     // await _contactCommunication.saveContact(_contact);
-                            //     // Navigator.pop(context, result);
-                            //   };
-                              Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                              builder: (context) => CustomerPage()));
+                              if (_validatePW == false &&
+                                  _validateEmail == false) {
+                                // FirebaseAuth.instance.signInWithEmailAndPassword(
+                                //     email: _emailController.text, password: _passwordController.text);
+                                signInWithEmailAndPassword();
+                              }
+                              //   setState(() {
+                              //     // _contactNameController.text.isEmpty
+                              //     //     ? _validateName = true
+                              //     //     : _validateName = false;
+                              //     _contactNumberController.text.isEmpty
+                              //         ? _validateNumber = true
+                              //         : _validateNumber = false;
+                              //   });
+                              //   if (
+                              //   //_validateName == false &&
+                              //   _validateNumber == false) {
+                              //     //InsertContacts
+                              //     // var _contact = Contact();
+                              //     // _contact.name = _contactNameController.text;
+                              //     // _contact.number = _contactNumberController.text;
+                              //     // _contact.email = _contactEmailController.text;
+                              //     // _contact.photo = ImagePath ?? "";
+                              //     // print(_contact.name);
+                              //     // print(_contact.number);
+                              //     // print(_contact.email);
+                              //     // print(_contact.photo);
+                              //     // var result =
+                              //     // await _contactCommunication.saveContact(_contact);
+                              //     // Navigator.pop(context, result);
+                              //   };
+                              //loggedIn ?
+                              // Navigator.push(
+                              //         context,
+                              //         MaterialPageRoute(
+                              //             builder: (context) => CustomerPage()));
+                              // : SizedBox.shrink();
                             },
                             child: const Text('Login')),
                       ),
@@ -398,13 +426,14 @@ class _LoginState extends State<Login> {
                               MaterialPageRoute(
                                   builder: (context) => Registration()));
                         },
-                        child: const Text('Register',),
+                        child: const Text(
+                          'Register',
+                        ),
                       ),
                     ],
                   ),
                 ],
               )
-
             ],
           ),
         ),

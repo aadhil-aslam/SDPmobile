@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sdp/Customers/Login.dart';
 import '../auth.dart';
 import '../navdrawer.dart';
 import 'home customer.dart';
@@ -28,6 +29,16 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  String Token = "Pending";
+
+  bool requested = false;
+
+  late int currentLimit;
+
+  final now = DateTime.now();
+
   late bool isLoggedIn;
 
   late String Name = "";
@@ -42,15 +53,16 @@ class _CustomerPageState extends State<CustomerPage> {
             title: Column(
               children: const [
                 Text(
-                  'No quota available',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 18),
+                  textAlign: TextAlign.center,
+                  'Please request within available limit',
+                  style: TextStyle(color: Colors.blueGrey, fontSize: 22),
                 ),
                 SizedBox(
                   height: 20,
                 ),
                 Icon(
                   Icons.cancel_outlined,
-                  size: 70,
+                  size: 50,
                   color: Colors.red,
                 )
               ],
@@ -58,6 +70,11 @@ class _CustomerPageState extends State<CustomerPage> {
           );
         });
   }
+
+  final Stream<DocumentSnapshot> _usersStream = FirebaseFirestore.instance
+      .collection("User")
+      .doc(FirebaseAuth.instance.currentUser?.uid)
+      .snapshots();
 
   _fetchName() async {
     final firebaseUser = await FirebaseAuth.instance.currentUser;
@@ -124,7 +141,7 @@ class _CustomerPageState extends State<CustomerPage> {
 
   bool quota = false;
 
-  bool free = true;
+  late bool free;
 
   _ValidateQuota() async {
     free
@@ -189,6 +206,14 @@ class _CustomerPageState extends State<CustomerPage> {
 
   @override
   Widget build(BuildContext context) {
+    // final _uid = FirebaseAuth.instance.currentUser!.uid;
+    //
+    // final Stream<DocumentSnapshot<Map<String, dynamic>>> _usersStream =
+    // FirebaseFirestore.instance
+    //     .collection('UserData')
+    //     .doc(_uid)
+    //     .snapshots();
+
     return Scaffold(
       drawer: NavDrawer(),
       appBar: AppBar(
@@ -221,15 +246,54 @@ class _CustomerPageState extends State<CustomerPage> {
               ),
               Row(
                 children: [
-                  FutureBuilder(
-                      future: _fetchName(),
+                  // StreamBuilder<QuerySnapshot>(
+                  //   stream: FirebaseFirestore.instance.collection('User').snapshots(),
+                  //   builder: (context, snapshot) {
+                  //     if (snapshot.hasData) {
+                  //       return ListView.builder(
+                  //           itemCount: snapshot.data!.docs.length,
+                  //           itemBuilder: (context, index) {
+                  //             DocumentSnapshot doc = snapshot.data!.docs[index];
+                  //             return Text(doc['username']);
+                  //           });
+                  //     } else {
+                  //       return Text("No data");
+                  //     }
+                  //   },
+                  // ),
+                  Expanded(
+                    child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      //key: Key(_uid),
+                      stream: FirebaseFirestore.instance
+                          .collection('User')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .snapshots(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState != ConnectionState.done)
-                          return Text("Welcome",
+                        if (snapshot.hasData) {
+                          //String username = snapshot.data?.data()?['username'];
+                          Token = snapshot.data?.data()?['Token'];
+                          requested =
+                              snapshot.data?.data()?['Requested'] == "Yes";
+                          print(requested);
+                          print(snapshot.data?.data()?['username']);
+                          return Text("Welcome " + snapshot.data!['username'].split(" ").elementAt(0),
                               style: TextStyle(fontSize: 30));
-                        return Text("Welcome " + Name,
-                            style: TextStyle(fontSize: 30));
-                      }),
+                        }
+                        return Text("Welcome", style: TextStyle(fontSize: 30));
+                      },
+                    ),
+                  ),
+
+                  // FutureBuilder(
+                  //     future: _fetchName(),
+                  //     builder: (context, snapshot) {
+                  //       if (snapshot.connectionState != ConnectionState.done)
+                  //         return Text("Welcome",
+                  //             style: TextStyle(fontSize: 30));
+                  //       return Text("Welcome " + Name,
+                  //           style: TextStyle(fontSize: 30));
+                  //     }),
+
                   Padding(
                     padding: const EdgeInsets.only(left: 100.0),
                     child: IconButton(
@@ -238,7 +302,18 @@ class _CustomerPageState extends State<CustomerPage> {
                           backgroundColor: Colors.blueGrey,
                           textStyle: const TextStyle(fontSize: 15)),
                       onPressed: () async {
+                        // var collection = FirebaseFirestore.instance.collection('User');
+                        // var querySnapshots = await collection.get();
+                        // for (var doc in querySnapshots.docs) {
+                        //   await doc.reference.update({
+                        //     'Requested': 'No', 'Token': 'Pending',
+                        //   });
+                        // }
                         FirebaseAuth.instance.signOut();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HomeCustomer()));
                       },
                       icon: Icon(Icons.logout),
                       //child: const Text('Sign Out')),
@@ -262,16 +337,54 @@ class _CustomerPageState extends State<CustomerPage> {
                   const SizedBox(
                     width: 10.0,
                   ),
-                  FutureBuilder(
-                      future: _fetchVnumber(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState != ConnectionState.done)
-                          return Text("Vehicle Number",
-                              style: TextStyle(fontSize: 20));
-                        return Text(Vnumber, style: TextStyle(fontSize: 17));
-                      }),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    //key: Key(_uid),
+                    stream: FirebaseFirestore.instance
+                        .collection('User')
+                        .doc(FirebaseAuth.instance.currentUser!.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        //String username = snapshot.data?.data()?['username'];
+                        print(snapshot.data?.data()?['Vehicle Number']);
+                        return Text(snapshot.data!['Vehicle Number'],
+                            style: TextStyle(fontSize: 17));
+                      }
+                      return Text("Vehicle Number",
+                          style: TextStyle(fontSize: 20));
+                    },
+                  ),
+                  // FutureBuilder(
+                  //     future: _fetchVnumber(),
+                  //     builder: (context, snapshot) {
+                  //       if (snapshot.connectionState != ConnectionState.done)
+                  //         return Text("Vehicle Number",
+                  //             style: TextStyle(fontSize: 20));
+                  //       return Text(Vnumber, style: TextStyle(fontSize: 17));
+                  //     }),
                 ],
               ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              requested
+                  ? Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "Token Number:",
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            const SizedBox(
+                              width: 10.0,
+                            ),
+                            Text(Token, style: TextStyle(fontSize: 17))
+                          ],
+                        ),
+                      ],
+                    )
+                  : SizedBox.shrink(),
               const SizedBox(
                 height: 150.0,
               ),
@@ -287,15 +400,34 @@ class _CustomerPageState extends State<CustomerPage> {
                     height: 8.0,
                   ),
                   Center(
-                    child: FutureBuilder(
-                        future: _fetchQuota(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState != ConnectionState.done)
-                            return Text("0 litres",
-                                style: TextStyle(fontSize: 40));
-                          return Text(QuotaLimit + " litres",
+                    child:
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      //key: Key(_uid),
+                      stream: FirebaseFirestore.instance
+                          .collection('User')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        //print(FirebaseAuth.instance.currentUser!.uid);
+                        if (snapshot.hasData) {
+                          //String username = snapshot.data?.data()?['username'];
+                          currentLimit =
+                              int.parse(snapshot.data?.data()?['quota']);
+                          return Text(snapshot.data!['quota'] + " litres",
                               style: TextStyle(fontSize: 40));
-                        }),
+                        }
+                        return Text("0 litres", style: TextStyle(fontSize: 40));
+                      },
+                    ),
+                    // FutureBuilder(
+                    //     future: _fetchQuota(),
+                    //     builder: (context, snapshot) {
+                    //       if (snapshot.connectionState != ConnectionState.done)
+                    //         return Text("0 litres",
+                    //             style: TextStyle(fontSize: 40));
+                    //       return Text(QuotaLimit + " litres",
+                    //           style: TextStyle(fontSize: 40));
+                    //     }),
                   ),
                   // const SizedBox(
                   //   height: 20.0,
@@ -316,21 +448,30 @@ class _CustomerPageState extends State<CustomerPage> {
                   SizedBox(
                     height: 18.0,
                   ),
-                  TextField(
-                      enabled: true,
-                      controller: _fuelAmountController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
-                      ],
-                      decoration: const InputDecoration(
-                        //filled: true,
-                        fillColor: const Color(0xFFFFFFFF),
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        hintText: 'Enter fuel amount',
-                        labelText: 'Fuel amount',
-                      )),
+                  Form(
+                    key: _formKey,
+                    child: TextFormField(
+                        validator: (value) {
+                          if (value == "0" || value!.isEmpty) {
+                            return 'Please enter a valid amount';
+                          }
+                          return null;
+                        },
+                        enabled: true,
+                        controller: _fuelAmountController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
+                        ],
+                        decoration: InputDecoration(
+                          //filled: true,
+                          fillColor: const Color(0xFFFFFFFF),
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          hintText: 'Enter fuel amount',
+                          labelText: 'Fuel amount',
+                        )),
+                  ),
                   SizedBox(
                     height: 10.0,
                   ),
@@ -344,19 +485,58 @@ class _CustomerPageState extends State<CustomerPage> {
                                 backgroundColor: Colors.blueGrey,
                                 textStyle: const TextStyle(fontSize: 15)),
                             onPressed: () async {
-                              //ShowDialog();
-                              FirebaseFirestore.instance
-                                  .collection("Requests")
-                                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                                  .set({
-                                "requested amount": _fuelAmountController.text,
-                                "customerId":
-                                    FirebaseAuth.instance.currentUser!.uid,
-                                "customerName": Name,
-                                "Vehicle number": Vnumber,
-                                "Status": "Pending"
-                              });
-                              setState(() {});
+                              if (_formKey.currentState!.validate()) {
+                                if (currentLimit >=
+                                    int.parse(_fuelAmountController.text)) {
+                                  DocumentReference docRef =
+                                      await FirebaseFirestore.instance
+                                          .collection("Requests")
+                                          .add({
+                                    "requested amount":
+                                        _fuelAmountController.text,
+                                    "customerId":
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    "customerName": Name,
+                                    "Vehicle number": Vnumber,
+                                    "Status": "Pending",
+                                    "Token": "Pending",
+                                    "Last requested": now,
+                                  });
+                                  String docId = docRef.id;
+                                  await FirebaseFirestore.instance
+                                      .collection("Requests")
+                                      .doc(docId)
+                                      .update({'id': docId});
+                                  currentLimit = currentLimit -
+                                      int.parse(_fuelAmountController.text);
+                                  await FirebaseFirestore.instance
+                                      .collection("User")
+                                      .doc(FirebaseAuth
+                                          .instance.currentUser!.uid)
+                                      .update({
+                                    'Requested': "Yes",
+                                    'quota': currentLimit.toString(),
+                                    'Last requested': now
+                                  });
+                                  setState(() {
+                                    requested = true;
+                                  });
+                                } else {
+                                  ShowDialog();
+                                }
+                                //ShowDialog();
+                                // FirebaseFirestore.instance.collection("Requests")//     //.doc(FirebaseAuth.instance.currentUser!.uid)
+                                //     .add({
+                                //   "requested amount": _fuelAmountController.text,
+                                //   "customerId":
+                                //       FirebaseAuth.instance.currentUser!.uid,
+                                //   "customerName": Name,
+                                //   "Vehicle number": Vnumber,
+                                //   "Status": "Pending",
+                                // "Token": "Pending"
+                                // });
+                                // setState(() {});
+                              }
                             },
                             child: const Text('Request fuel')),
                       ),

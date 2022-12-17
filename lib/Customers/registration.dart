@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../auth.dart';
+import 'Login.dart';
 
 class Registration extends StatefulWidget {
   Registration({Key? key}) : super(key: key);
@@ -45,6 +46,9 @@ class _RegistrationState extends State<Registration> {
   //     "Vehicle type": VT
   //   });
   // }
+
+  final now = DateTime.now();
+  //final today = DateTime(now.year, now.month, now.day);
 
   Widget _errorMessage() {
     return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
@@ -152,8 +156,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Name',
                         labelText: 'Name',
-                          errorText:
-                               'Name Can\'t be Empty'
+                          // errorText:
+                          //      'Name Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
@@ -168,8 +172,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Vehicle Number',
                         labelText: 'Vehicle Number',
-                          errorText:
-                          'Number Can\'t be Empty'
+                          // errorText:
+                          // 'Number Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
@@ -251,13 +255,14 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Email',
                         labelText: 'Email',
-                          errorText:
-                          'Email Can\'t be Empty'
+                          // errorText:
+                          // 'Email Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
                   ),
                   TextField(
+                      obscureText: true,
                       //enabled: quota ? true : false,
                       controller: _passwordController,
                       decoration: const InputDecoration(
@@ -267,8 +272,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Password',
                         labelText: 'Password',
-                          errorText:
-                          'Email Can\'t be Empty'
+                          // errorText:
+                          // 'Email Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 10.0,
@@ -297,9 +302,14 @@ class _RegistrationState extends State<Registration> {
                                   "Vehicle Number":
                                       _vehicleNumberController.text,
                                   "Vehicle type": selectedCategory,
-                                  "quota" : quotaLimit
+                                  "quota" : quotaLimit,
+                                  "Token": "Pending",
+                                  "Last requested" : "null",
+                                  "Requested" : "No",
                                 });
                               });
+                              Navigator.push(
+                                  context, MaterialPageRoute(builder: (context) => Login()));
                               //createUserWithEmailAndPassword();
                             },
                             child: const Text('Sign up')),
