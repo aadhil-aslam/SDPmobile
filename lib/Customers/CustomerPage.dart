@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sdp/Customers/Login.dart';
 import '../auth.dart';
 import '../navdrawer.dart';
@@ -29,6 +33,82 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+  AndroidNotificationChannel channel = const AndroidNotificationChannel(
+    'channel', // id
+    'High Importance Notifications', // title
+    importance: Importance.high,
+  );
+
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  void requestPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
+      print('User granted provisional permission');
+    } else {
+      print('User declined or has not accepted permission');
+    }
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ));
+      }
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
+
+    await Firebase.initializeApp();
+    FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+  }
+
+  DeviceToken() async {
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    //print(fcmToken);
+  }
+
   final _formKey = GlobalKey<FormState>();
 
   String Token = "Pending";
@@ -55,6 +135,32 @@ class _CustomerPageState extends State<CustomerPage> {
                 Text(
                   textAlign: TextAlign.center,
                   'Please request within available limit',
+                  style: TextStyle(color: Colors.blueGrey, fontSize: 22),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Icon(
+                  Icons.cancel_outlined,
+                  size: 50,
+                  color: Colors.red,
+                )
+              ],
+            ),
+          );
+        });
+  }
+
+  requestedDialog() {
+    showDialog(
+        context: context,
+        builder: (parm) {
+          return AlertDialog(
+            title: Column(
+              children: const [
+                Text(
+                  textAlign: TextAlign.center,
+                  'Please request after previous order completed',
                   style: TextStyle(color: Colors.blueGrey, fontSize: 22),
                 ),
                 SizedBox(
@@ -125,10 +231,11 @@ class _CustomerPageState extends State<CustomerPage> {
 
   @override
   void initState() {
-    _fetchQuota();
-    _fetchVnumber();
-    _fetchName();
     // TODO: implement initState
+    super.initState();
+    _fetchName();
+    _fetchVnumber();
+    requestPermission();
     super.initState();
   }
 
@@ -206,6 +313,8 @@ class _CustomerPageState extends State<CustomerPage> {
 
   @override
   Widget build(BuildContext context) {
+    DeviceToken();
+
     // final _uid = FirebaseAuth.instance.currentUser!.uid;
     //
     // final Stream<DocumentSnapshot<Map<String, dynamic>>> _usersStream =
@@ -262,7 +371,8 @@ class _CustomerPageState extends State<CustomerPage> {
                   //   },
                   // ),
                   Expanded(
-                    child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    child:
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                       //key: Key(_uid),
                       stream: FirebaseFirestore.instance
                           .collection('User')
@@ -271,12 +381,15 @@ class _CustomerPageState extends State<CustomerPage> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           //String username = snapshot.data?.data()?['username'];
-                          Token = snapshot.data?.data()?['Token'];
+                          //Token = snapshot.data?.data()?['Token'];
                           requested =
                               snapshot.data?.data()?['Requested'] == "Yes";
-                          print(requested);
-                          print(snapshot.data?.data()?['username']);
-                          return Text("Welcome " + snapshot.data!['username'].split(" ").elementAt(0),
+                          //print(snapshot.data?.data()?['username']);
+                          return Text(
+                              "Welcome " +
+                                  snapshot.data!['username']
+                                      .split(" ")
+                                      .elementAt(0),
                               style: TextStyle(fontSize: 30));
                         }
                         return Text("Welcome", style: TextStyle(fontSize: 30));
@@ -346,7 +459,7 @@ class _CustomerPageState extends State<CustomerPage> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         //String username = snapshot.data?.data()?['username'];
-                        print(snapshot.data?.data()?['Vehicle Number']);
+                        //print(snapshot.data?.data()?['Vehicle Number']);
                         return Text(snapshot.data!['Vehicle Number'],
                             style: TextStyle(fontSize: 17));
                       }
@@ -379,7 +492,24 @@ class _CustomerPageState extends State<CustomerPage> {
                             const SizedBox(
                               width: 10.0,
                             ),
-                            Text(Token, style: TextStyle(fontSize: 17))
+                            StreamBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>>(
+                              //key: Key(_uid),
+                              stream: FirebaseFirestore.instance
+                                  .collection('User')
+                                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  //String username = snapshot.data?.data()?['username'];
+                                  //print(snapshot.data?.data()?['Token Number']);
+                                  return Text(snapshot.data?.data()?['Token'],
+                                      style: TextStyle(fontSize: 17));
+                                }
+                                return Text("Token Number",
+                                    style: TextStyle(fontSize: 20));
+                              },
+                            ),
                           ],
                         ),
                       ],
@@ -488,39 +618,44 @@ class _CustomerPageState extends State<CustomerPage> {
                               if (_formKey.currentState!.validate()) {
                                 if (currentLimit >=
                                     int.parse(_fuelAmountController.text)) {
-                                  DocumentReference docRef =
-                                      await FirebaseFirestore.instance
-                                          .collection("Requests")
-                                          .add({
-                                    "requested amount":
-                                        _fuelAmountController.text,
-                                    "customerId":
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    "customerName": Name,
-                                    "Vehicle number": Vnumber,
-                                    "Status": "Pending",
-                                    "Token": "Pending",
-                                    "Last requested": now,
-                                  });
-                                  String docId = docRef.id;
-                                  await FirebaseFirestore.instance
-                                      .collection("Requests")
-                                      .doc(docId)
-                                      .update({'id': docId});
-                                  currentLimit = currentLimit -
-                                      int.parse(_fuelAmountController.text);
-                                  await FirebaseFirestore.instance
-                                      .collection("User")
-                                      .doc(FirebaseAuth
-                                          .instance.currentUser!.uid)
-                                      .update({
-                                    'Requested': "Yes",
-                                    'quota': currentLimit.toString(),
-                                    'Last requested': now
-                                  });
-                                  setState(() {
-                                    requested = true;
-                                  });
+                                  if (requested == false) {
+                                    DocumentReference docRef =
+                                        await FirebaseFirestore.instance
+                                            .collection("Requests")
+                                            .add({
+                                      "requested amount":
+                                          _fuelAmountController.text,
+                                      "customerId": FirebaseAuth
+                                          .instance.currentUser!.uid,
+                                      "customerName": Name,
+                                      "Vehicle number": Vnumber,
+                                      "Status": "Pending",
+                                      "Token": "Pending",
+                                      "Last requested": now,
+                                    });
+                                    print(Name);
+                                    String docId = docRef.id;
+                                    await FirebaseFirestore.instance
+                                        .collection("Requests")
+                                        .doc(docId)
+                                        .update({'id': docId});
+                                    currentLimit = currentLimit -
+                                        int.parse(_fuelAmountController.text);
+                                    await FirebaseFirestore.instance
+                                        .collection("User")
+                                        .doc(FirebaseAuth
+                                            .instance.currentUser!.uid)
+                                        .update({
+                                      'Requested': "Yes",
+                                      'quota': currentLimit.toString(),
+                                      'Last requested': now
+                                    });
+                                    setState(() {
+                                      requested = true;
+                                    });
+                                  } else {
+                                    requestedDialog();
+                                  }
                                 } else {
                                   ShowDialog();
                                 }

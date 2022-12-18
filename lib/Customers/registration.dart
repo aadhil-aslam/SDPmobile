@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sdp/Customers/home%20customer.dart';
 
 import '../auth.dart';
 import 'Login.dart';
@@ -14,6 +16,40 @@ class Registration extends StatefulWidget {
 }
 
 class _RegistrationState extends State<Registration> {
+  Future<void> createUserWithEmailAndPassword() async {
+    //final fcmToken = FirebaseMessaging.instance.getToken();
+    try {
+
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+
+      await Auth().createUserWithEmailAndPassword(
+          email: _emailController.text, password: _passwordController.text);
+          FirebaseFirestore.instance
+              .collection("User")
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .set({
+            "username": _NameController.text,
+            "email": _emailController.text,
+            "Vehicle Number": _vehicleNumberController.text,
+            "Vehicle type": selectedCategory,
+            "quota": quotaLimit,
+            "Token": "Pending",
+            "Last requested": "null",
+            "Requested": "No",
+            "DeviceToken" : fcmToken,
+          });
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => HomeCustomer()));
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _showSuccessSnackbar(e.toString());
+        errorMessage = e.message;
+      });
+    }
+  }
+
   FirebaseAuth auth = FirebaseAuth.instance;
 
   String? errorMessage = "";
@@ -26,26 +62,6 @@ class _RegistrationState extends State<Registration> {
   var _vehicleNumberController = TextEditingController();
   var _emailController = TextEditingController();
   var _passwordController = TextEditingController();
-
-  // Future createUserWithEmailAndPassword() async {
-  //   await auth.createUserWithEmailAndPassword(
-  //       email: _emailController.text, password: _passwordController.text);
-  //   addUserDetails(_NameController.text,
-  //       _emailController.text,
-  //       _vehicleNumberController.text,
-  //       selectedCategory);
-  // }
-  //
-  //
-  // Future<void> addUserDetails(
-  //     String username, String email, String VN, String VT) async {
-  //   FirebaseFirestore.instance.collection("User").add({
-  //     "username": username,
-  //     "email": email,
-  //     "Vehicle Number": VN,
-  //     "Vehicle type": VT
-  //   });
-  // }
 
   final now = DateTime.now();
   //final today = DateTime(now.year, now.month, now.day);
@@ -70,12 +86,12 @@ class _RegistrationState extends State<Registration> {
   late Vehicle selectedUser;
 
   List<Vehicle> vehicles = <Vehicle>[
-    const Vehicle("5",'Bike'),
-    const Vehicle("10",'Car'),
-    const Vehicle("15",'Van'),
-    const Vehicle("20",'Lorry'),
-    const Vehicle("25",'Bus'),
-    const Vehicle("15",'Three wheeler')
+    const Vehicle("5", 'Bike'),
+    const Vehicle("10", 'Car'),
+    const Vehicle("15", 'Van'),
+    const Vehicle("20", 'Lorry'),
+    const Vehicle("25", 'Bus'),
+    const Vehicle("15", 'Three wheeler')
   ];
 
   @override
@@ -83,6 +99,15 @@ class _RegistrationState extends State<Registration> {
     // TODO: implement initState
     super.initState();
     selectedUser = vehicles[0];
+  }
+
+  _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[700],
+      ),
+    );
   }
 
   @override
@@ -114,7 +139,7 @@ class _RegistrationState extends State<Registration> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(
-                height:30.0,
+                height: 30.0,
               ),
               Center(
                 child: const Text(
@@ -156,8 +181,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Name',
                         labelText: 'Name',
-                          // errorText:
-                          //      'Name Can\'t be Empty'
+                        // errorText:
+                        //      'Name Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
@@ -172,8 +197,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Vehicle Number',
                         labelText: 'Vehicle Number',
-                          // errorText:
-                          // 'Number Can\'t be Empty'
+                        // errorText:
+                        // 'Number Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
@@ -185,14 +210,11 @@ class _RegistrationState extends State<Registration> {
                         borderRadius: BorderRadius.all(Radius.circular(3.0)),
                       ),
                     ),
-                    child:
-                    Padding(
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child:
-                      DropdownButton<Vehicle>(
+                      child: DropdownButton<Vehicle>(
                         value: selectedUser,
-                        onChanged: (Vehicle?
-                        newValue) {
+                        onChanged: (Vehicle? newValue) {
                           setState(() {
                             selectedUser = newValue!;
                             quotaLimit = selectedUser.quota;
@@ -212,34 +234,34 @@ class _RegistrationState extends State<Registration> {
                         underline: SizedBox(),
                         isExpanded: true,
                       ),
-        //               DropdownButton<String>(
-        //                 items: <String>[
-        //                   "Bike",
-        //                   "Car",
-        //                   "Van",
-        //                   "Lorry",
-        //                   "Bus",
-        //                   "Three wheeler"
-        //                 ].map((String value) {
-        //                   return DropdownMenuItem<String>(
-        //                     value: value,
-        //                     child: Text(value),
-        //                   );
-        //                 }).toList(),
-        //                 hint: Text(selectedCategory.isEmpty
-        //                     ? 'Vehicle type'
-        //                     : selectedCategory),
-        //                 //borderRadius: BorderRadius.circular(10),
-        //                 underline: SizedBox(),
-        //                 isExpanded: true,
-        //                 onChanged: (value) {
-        //                   if (value != null) {
-        //                     setState(() {
-        //                       selectedCategory = value;
-        //                     });
-        //                   }
-        //                 },
-        //               ),
+                      //               DropdownButton<String>(
+                      //                 items: <String>[
+                      //                   "Bike",
+                      //                   "Car",
+                      //                   "Van",
+                      //                   "Lorry",
+                      //                   "Bus",
+                      //                   "Three wheeler"
+                      //                 ].map((String value) {
+                      //                   return DropdownMenuItem<String>(
+                      //                     value: value,
+                      //                     child: Text(value),
+                      //                   );
+                      //                 }).toList(),
+                      //                 hint: Text(selectedCategory.isEmpty
+                      //                     ? 'Vehicle type'
+                      //                     : selectedCategory),
+                      //                 //borderRadius: BorderRadius.circular(10),
+                      //                 underline: SizedBox(),
+                      //                 isExpanded: true,
+                      //                 onChanged: (value) {
+                      //                   if (value != null) {
+                      //                     setState(() {
+                      //                       selectedCategory = value;
+                      //                     });
+                      //                   }
+                      //                 },
+                      //               ),
                     ),
                   ),
                   SizedBox(
@@ -255,8 +277,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Email',
                         labelText: 'Email',
-                          // errorText:
-                          // 'Email Can\'t be Empty'
+                        // errorText:
+                        // 'Email Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 18.0,
@@ -272,8 +294,8 @@ class _RegistrationState extends State<Registration> {
                         border: OutlineInputBorder(),
                         hintText: 'Enter Password',
                         labelText: 'Password',
-                          // errorText:
-                          // 'Email Can\'t be Empty'
+                        // errorText:
+                        // 'Email Can\'t be Empty'
                       )),
                   SizedBox(
                     height: 10.0,
@@ -288,29 +310,34 @@ class _RegistrationState extends State<Registration> {
                                 backgroundColor: Colors.blueGrey,
                                 textStyle: const TextStyle(fontSize: 15)),
                             onPressed: () {
-                              auth
-                                  .createUserWithEmailAndPassword(
-                                      email: _emailController.text,
-                                      password: _passwordController.text)
-                                  .then((value) {
-                                FirebaseFirestore.instance
-                                    .collection("User")
-                                    .doc(value.user!.uid)
-                                    .set({
-                                  "username": _NameController.text,
-                                  "email": _emailController.text,
-                                  "Vehicle Number":
-                                      _vehicleNumberController.text,
-                                  "Vehicle type": selectedCategory,
-                                  "quota" : quotaLimit,
-                                  "Token": "Pending",
-                                  "Last requested" : "null",
-                                  "Requested" : "No",
-                                });
-                              });
-                              Navigator.push(
-                                  context, MaterialPageRoute(builder: (context) => Login()));
-                              //createUserWithEmailAndPassword();
+                              final fcmToken =
+                                  FirebaseMessaging.instance.getToken();
+                              // auth
+                              //     .createUserWithEmailAndPassword(
+                              //         email: _emailController.text,
+                              //         password: _passwordController.text)
+                              //     .then((value) {
+                              //   FirebaseFirestore.instance
+                              //       .collection("User")
+                              //       .doc(value.user!.uid)
+                              //       .set({
+                              //     "username": _NameController.text,
+                              //     "email": _emailController.text,
+                              //     "Vehicle Number":
+                              //         _vehicleNumberController.text,
+                              //     "Vehicle type": selectedCategory,
+                              //     "quota": quotaLimit,
+                              //     "Token": "Pending",
+                              //     "Last requested": "null",
+                              //     "Requested": "No",
+                              //     "DeviceToken": fcmToken,
+                              //   });
+                              // });
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) => HomeCustomer()));
+                              createUserWithEmailAndPassword();
                             },
                             child: const Text('Sign up')),
                       ),
@@ -342,7 +369,7 @@ class _RegistrationState extends State<Registration> {
 }
 
 class Vehicle {
-  const Vehicle(this.quota,this.name);
+  const Vehicle(this.quota, this.name);
 
   final String name;
   final String quota;
