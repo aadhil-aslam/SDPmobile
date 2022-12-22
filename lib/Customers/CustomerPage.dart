@@ -33,6 +33,30 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+  late String fcmT;
+  updateDeviceToken() async {
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    if (FirebaseAuth.instance.currentUser != null) {
+      await FirebaseFirestore.instance
+          .collection("User")
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get()
+          .then((ds) {
+        fcmT = ds.data()!['DeviceToken'];
+      }).catchError((e) {});
+    } else {
+      const SizedBox.shrink();
+    }
+    if (fcmToken != fcmT) {
+      await FirebaseFirestore.instance
+          .collection("User")
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .update({'DeviceToken': fcmToken});
+    } else {
+      const SizedBox.shrink();
+    }
+  }
+
   AndroidNotificationChannel channel = const AndroidNotificationChannel(
     'channel', // id
     'High Importance Notifications', // title
@@ -231,11 +255,14 @@ class _CustomerPageState extends State<CustomerPage> {
 
   @override
   void initState() {
+    print("init");
     // TODO: implement initState
     super.initState();
     _fetchName();
     _fetchVnumber();
     requestPermission();
+    updateDeviceToken();
+    requested = true;
     super.initState();
   }
 
@@ -390,9 +417,12 @@ class _CustomerPageState extends State<CustomerPage> {
                                   snapshot.data!['username']
                                       .split(" ")
                                       .elementAt(0),
-                              style: TextStyle(fontSize: 30));
+                              style: TextStyle(
+                                  fontSize: 30, fontWeight: FontWeight.bold));
                         }
-                        return Text("Welcome", style: TextStyle(fontSize: 30));
+                        return Text("Welcome",
+                            style: TextStyle(
+                                fontSize: 30, fontWeight: FontWeight.bold));
                       },
                     ),
                   ),
@@ -441,6 +471,31 @@ class _CustomerPageState extends State<CustomerPage> {
               const SizedBox(
                 height: 5.0,
               ),
+
+              // Card(
+              //   child: ListTile(
+              //     title: Text('Vehicle number:',
+              //         style: TextStyle(fontSize: 17)),
+              //     trailing: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              //       //key: Key(_uid),
+              //       stream: FirebaseFirestore.instance
+              //           .collection('User')
+              //           .doc(FirebaseAuth.instance.currentUser!.uid)
+              //           .snapshots(),
+              //       builder: (context, snapshot) {
+              //         if (snapshot.hasData) {
+              //           //String username = snapshot.data?.data()?['username'];
+              //           //print(snapshot.data?.data()?['Vehicle Number']);
+              //           return Text(snapshot.data!['Vehicle Number'],
+              //               style: TextStyle(fontSize: 17));
+              //         }
+              //         return Text("Vehicle Number",
+              //             style: TextStyle(fontSize: 20));
+              //       },
+              //     ),
+              //   ),
+              // ),
+
               Row(
                 children: [
                   Text(
@@ -483,6 +538,31 @@ class _CustomerPageState extends State<CustomerPage> {
               requested
                   ? Column(
                       children: [
+                        // Card(
+                        //   child: ListTile(
+                        //     title: Text('Token Number:',
+                        //         style: TextStyle(fontSize: 17)),
+                        //     trailing: StreamBuilder<
+                        //         DocumentSnapshot<Map<String, dynamic>>>(
+                        //       //key: Key(_uid),
+                        //       stream: FirebaseFirestore.instance
+                        //           .collection('User')
+                        //           .doc(FirebaseAuth.instance.currentUser!.uid)
+                        //           .snapshots(),
+                        //       builder: (context, snapshot) {
+                        //         if (snapshot.hasData) {
+                        //           //String username = snapshot.data?.data()?['username'];
+                        //           //print(snapshot.data?.data()?['Token Number']);
+                        //           return Text(snapshot.data?.data()?['Token'],
+                        //               style: TextStyle(fontSize: 17));
+                        //         }
+                        //         return Text("Token Number",
+                        //             style: TextStyle(fontSize: 20));
+                        //       },
+                        //     ),
+                        //   ),
+                        // ),
+
                         Row(
                           children: [
                             Text(
@@ -507,6 +587,65 @@ class _CustomerPageState extends State<CustomerPage> {
                                       style: TextStyle(fontSize: 17));
                                 }
                                 return Text("Token Number",
+                                    style: TextStyle(fontSize: 20));
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10.0,
+                        ),
+                        // Card(
+                        //   child: ListTile(
+                        //     title: Text('Date and Time:',
+                        //         style: TextStyle(fontSize: 17)),
+                        //     trailing: StreamBuilder<
+                        //         DocumentSnapshot<Map<String, dynamic>>>(
+                        //       //key: Key(_uid),
+                        //       stream: FirebaseFirestore.instance
+                        //           .collection('User')
+                        //           .doc(FirebaseAuth.instance.currentUser!.uid)
+                        //           .snapshots(),
+                        //       builder: (context, snapshot) {
+                        //         if (snapshot.hasData) {
+                        //           //String username = snapshot.data?.data()?['username'];
+                        //           //print(snapshot.data?.data()?['Token Number']);
+                        //           return Text(
+                        //               snapshot.data?.data()?['DateAndTime'],
+                        //               style: TextStyle(fontSize: 17));
+                        //         }
+                        //         return Text("Date and Time",
+                        //             style: TextStyle(fontSize: 20));
+                        //       },
+                        //     ),
+                        //   ),
+                        // ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Date and Time:",
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            const SizedBox(
+                              width: 10.0,
+                            ),
+                            StreamBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>>(
+                              //key: Key(_uid),
+                              stream: FirebaseFirestore.instance
+                                  .collection('User')
+                                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  //String username = snapshot.data?.data()?['username'];
+                                  //print(snapshot.data?.data()?['Token Number']);
+                                  return Text(
+                                      snapshot.data?.data()?['DateAndTime'],
+                                      style: TextStyle(fontSize: 17));
+                                }
+                                return Text("Date and Time",
                                     style: TextStyle(fontSize: 20));
                               },
                             ),
@@ -631,7 +770,8 @@ class _CustomerPageState extends State<CustomerPage> {
                                       "Vehicle number": Vnumber,
                                       "Status": "Pending",
                                       "Token": "Pending",
-                                      "Last requested": now,
+                                      "Requested time": now,
+                                      "DateAndTime": "Pending",
                                     });
                                     print(Name);
                                     String docId = docRef.id;
@@ -641,6 +781,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                         .update({'id': docId});
                                     currentLimit = currentLimit -
                                         int.parse(_fuelAmountController.text);
+
                                     await FirebaseFirestore.instance
                                         .collection("User")
                                         .doc(FirebaseAuth
@@ -648,7 +789,11 @@ class _CustomerPageState extends State<CustomerPage> {
                                         .update({
                                       'Requested': "Yes",
                                       'quota': currentLimit.toString(),
-                                      'Last requested': now
+                                      'Last requested': now,
+                                      "DateAndTime": "Pending",
+                                      "Token": "Pending",
+                                      "requested amount":
+                                          _fuelAmountController.text,
                                     });
                                     setState(() {
                                       requested = true;

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,53 +12,17 @@ class SecondTwo extends StatefulWidget {
 }
 
 class _SecondTwoState extends State<SecondTwo> {
-  var _contactNameController = TextEditingController();
-  var _contactNumberController = TextEditingController();
-  var _contactEmailController = TextEditingController();
-  //
-  // bool _validateName = false;
-  bool _validateNumber = false;
+  var _tokenController = TextEditingController();
 
   bool quota = false;
 
-  bool free = true;
+  bool free = false;
 
   _ValidateQuota() async {
+    print(free);
     free
         ? setState(() {
             quota = true;
-            // showDialog(
-            //     context: context,
-            //     builder: (parm) {
-            //       return AlertDialog(
-            //         title: Column(
-            //           children: const [
-            //             Text(
-            //               'Avaliable limit',
-            //               style:
-            //                   TextStyle(color: Colors.blueGrey, fontSize: 18),
-            //             ),
-            //             SizedBox(
-            //               height: 20,
-            //             ),
-            //             Text(
-            //               '5 liters',
-            //               style: TextStyle(color: Colors.green, fontSize: 18),
-            //             ),
-            //             // SizedBox(
-            //             //   height: 20,
-            //             // ),
-            //             // TextButton(
-            //             //   onPressed: () {
-            //             //   },
-            //             //   child: Text('5 liters',
-            //             //       style:
-            //             //       TextStyle(color: Colors.green, fontSize: 18)),
-            //             // ),
-            //           ],
-            //         ),
-            //       );
-            //     });
           })
         : showDialog(
             context: context,
@@ -64,7 +31,7 @@ class _SecondTwoState extends State<SecondTwo> {
                 title: Column(
                   children: const [
                     Text(
-                      'No quota available',
+                      'Invalid token number',
                       style: TextStyle(color: Colors.blueGrey, fontSize: 18),
                     ),
                     SizedBox(
@@ -81,6 +48,62 @@ class _SecondTwoState extends State<SecondTwo> {
             });
   }
 
+  String vNumber = 'Vehicle Number';
+  String date = 'DateAndTime';
+  String fuelAmount = 'requested amount';
+  String customerId = '';
+  String requestId = '';
+
+  search() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('User')
+        .limit(1)
+        .where('Token', isEqualTo: _tokenController.text)
+        .get();
+
+    for (var doc in querySnapshot.docs) {
+      // Getting data directly
+      setState(() {
+        vNumber = doc.get('Vehicle Number');
+        date = doc.get('DateAndTime');
+        fuelAmount = doc.get('requested amount');
+        customerId = doc.id;
+      });
+      print(vNumber);
+      print(date);
+      print(fuelAmount);
+      print(doc.id);
+    }
+    setState(() {
+      free = vNumber != 'Vehicle Number';
+    });
+    _ValidateQuota();
+  }
+
+  submit() async {
+    await FirebaseFirestore.instance.collection('User').doc(customerId).update({
+      'Requested': "No",
+      "DateAndTime": "Pending",
+      "Token": "Pending",
+      "requested amount": "null",
+    });
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('Requests')
+        .limit(1)
+        .where('Token', isEqualTo: _tokenController.text)
+        .get();
+    for (var doc in querySnapshot.docs) {
+      // Getting data directly
+      setState(() {
+        requestId = doc.id;
+      });
+      print(doc.id);
+    }
+    FirebaseFirestore.instance.collection('Requests').doc(requestId).update({
+      'Status': 'Completed',
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,106 +117,18 @@ class _SecondTwoState extends State<SecondTwo> {
                 height: 10.0,
               ),
               const Text(
-                    "Fuel Station",
-                    style: TextStyle(fontSize: 30),
-                  ),
+                "Fuel Station",
+                style: TextStyle(fontSize: 30),
+              ),
               const SizedBox(
                 height: 10.0,
               ),
-              // Stack(
-              //   children: [
-              //     // Center(
-              //     //   child: Container(
-              //     //     height: 160,
-              //     //     width: 160,
-              //     //     decoration: BoxDecoration(
-              //     //       shape: BoxShape.circle,
-              //     //       //border: Border.all(width: 2, color: Colors.blueGrey)
-              //     //     ),
-              //     //     child:
-              //     //     // ClipRRect(
-              //     //     //   borderRadius: BorderRadius.circular(100.0),
-              //     //     //   child: _image != null
-              //     //     //       ? Image.file(
-              //     //     //     _image!,
-              //     //     //     fit: BoxFit.cover,
-              //     //     //   )
-              //     //     //       :
-              //     //       Center(
-              //     //         child: CircleAvatar(
-              //     //           backgroundColor: Colors.blueGrey,
-              //     //           radius: 80,
-              //     //           child: Icon(
-              //     //             Icons.add_a_photo,
-              //     //             size: 30,
-              //     //             color: Colors.white,
-              //     //           ),
-              //     //         ),
-              //     //       ),
-              //     //
-              //     //   ),
-              //     // ),
-              //     // Center(
-              //     //   child: CircleAvatar(
-              //     //     backgroundColor: Colors.black12,
-              //     //     radius: 80,
-              //     //     child: IconButton(
-              //     //         icon: const Icon(
-              //     //           Icons.add_a_photo,
-              //     //           size: 30,
-              //     //         ),
-              //     //         color: Colors.white,
-              //     //         onPressed: () {
-              //     //           Widget optionOne = SimpleDialogOption(
-              //     //             child: const Text('Take new photo'),
-              //     //             onPressed: () {
-              //     //               Navigator.pop(context);
-              //     //               //_TakePhoto();
-              //     //             },
-              //     //           );
-              //     //           Widget optionTwo = SimpleDialogOption(
-              //     //             child: const Text('Choose new photo'),
-              //     //             onPressed: () {
-              //     //               Navigator.pop(context);
-              //     //               //_ChoosePhoto();
-              //     //             },
-              //     //           );
-              //     //           // set up the SimpleDialog
-              //     //           SimpleDialog dialog = SimpleDialog(
-              //     //             title: const Text('Change photo'),
-              //     //             children: <Widget>[
-              //     //               optionOne,
-              //     //               optionTwo,
-              //     //             ],
-              //     //           );
-              //     //
-              //     //           // show the dialog
-              //     //           showDialog(
-              //     //             context: context,
-              //     //             builder: (BuildContext context) {
-              //     //               return dialog;
-              //     //             },
-              //     //           );
-              //     //         }
-              //     //     ),
-              //     //   ),
-              //     // ),
-              //   ],
-              // ),
-              // const SizedBox(
-              //   height: 40.0,
-              // ),
-              // Column(
-              //   children: const [
-              //     //Icon(Icons.person),
-              //   ],
-              // ),
               Row(
                 children: [
                   Flexible(
                     child: TextField(
                       //autofocus: true,
-                      controller: _contactNameController,
+                      controller: _tokenController,
                       decoration: const InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
@@ -204,9 +139,7 @@ class _SecondTwoState extends State<SecondTwo> {
                         //errorText: _validateName ? 'Name Can\'t Be Empty' : null,
                       ),
                       onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          _ValidateQuota();
-                        }
+                        search();
                       },
                     ),
                   ),
@@ -221,7 +154,7 @@ class _SecondTwoState extends State<SecondTwo> {
                               backgroundColor: Colors.red,
                               textStyle: const TextStyle(fontSize: 15)),
                           onPressed: () {
-                            _ValidateQuota();
+                            search();
                           },
                           child: const Text('Check')),
                     ),
@@ -231,147 +164,79 @@ class _SecondTwoState extends State<SecondTwo> {
               const SizedBox(
                 height: 100.0,
               ),
-
-              quota ? Column(
-                children: [
-                  Text(
-                    "Quota limit",
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
-                  Text(
-                    "5 litres",
-                    style: TextStyle(fontSize: 40),
-                  ),
-                  const SizedBox(
-                    height: 30.0,
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        "Vehicle number:",
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40.0),
-                        child: Text(
-                          "ABC 001",
-                          style: TextStyle(fontSize: 15),
+              quota
+                  ? Column(
+                      children: [
+                        const Text(
+                          "Requested amount",
+                          style: TextStyle(fontSize: 18),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        "Requested amount:",
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 18.0),
-                        child: Text(
-                          "2 litres",
-                          style: TextStyle(fontSize: 15),
+                        const SizedBox(
+                          height: 10.0,
                         ),
-                      ),
-                    ],
-                  ),
-                  // TextField(
-                  //     enabled: quota ? true : false,
-                  //     controller: _contactNumberController,
-                  //     decoration: InputDecoration(
-                  //       //filled: true,
-                  //       fillColor: const Color(0xFFFFFFFF),
-                  //       isDense: true,
-                  //       border: const OutlineInputBorder(),
-                  //       hintText: 'Enter Token Number',
-                  //       labelText: 'Token Number',
-                  //       errorText: _validateNumber ? 'Number Can\'t Be Empty' : null,
-                  //     )),
-                  // SizedBox(
-                  //   height: 18.0,
-                  // ),
-                  // TextField(
-                  //     enabled: quota ? true : false,
-                  //     controller: _contactEmailController,
-                  //     keyboardType: TextInputType.number,
-                  //     inputFormatters: <TextInputFormatter>[
-                  //       FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
-                  //     ],
-                  //     decoration: const InputDecoration(
-                  //       //filled: true,
-                  //       fillColor: const Color(0xFFFFFFFF),
-                  //       isDense: true,
-                  //       border: OutlineInputBorder(),
-                  //       hintText: 'Enter fuel amount',
-                  //       labelText: 'Fuel amount',
-                  //     )),
-                  SizedBox(
-                    height: 20.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.blueGrey,
-                                textStyle: const TextStyle(fontSize: 15)),
-                            onPressed: () async {
-                              setState(() {
-                                // _contactNameController.text.isEmpty
-                                //     ? _validateName = true
-                                //     : _validateName = false;
-                                _contactNumberController.text.isEmpty
-                                    ? _validateNumber = true
-                                    : _validateNumber = false;
-                              });
-                              if (
-                              //_validateName == false &&
-                              _validateNumber == false) {
-                                //InsertContacts
-                                // var _contact = Contact();
-                                // _contact.name = _contactNameController.text;
-                                // _contact.number = _contactNumberController.text;
-                                // _contact.email = _contactEmailController.text;
-                                // _contact.photo = ImagePath ?? "";
-                                // print(_contact.name);
-                                // print(_contact.number);
-                                // print(_contact.email);
-                                // print(_contact.photo);
-                                // var result =
-                                // await _contactCommunication.saveContact(_contact);
-                                // Navigator.pop(context, result);
-                              }
-                            },
-                            child: const Text('Submit')),
-                      ),
-                      // const SizedBox(
-                      //   width: 10.0,
-                      // ),
-                      // Expanded(
-                      //     child: TextButton(
-                      //         style: TextButton.styleFrom(
-                      //             foregroundColor: Colors.white,
-                      //             backgroundColor: Colors.red,
-                      //             textStyle: const TextStyle(fontSize: 15)),
-                      //         onPressed: () {
-                      //           _contactNameController.text = '';
-                      //           _contactNumberController.text = '';
-                      //           _contactEmailController.text = '';
-                      //         },
-                      //         child: const Text('Clear')))
-                    ],
-                  )
-                ],
-              ) : Container(),
-
+                        Text(
+                          fuelAmount + " litres",
+                          style: TextStyle(fontSize: 40),
+                        ),
+                        const SizedBox(
+                          height: 30.0,
+                        ),
+                        Row(
+                          children: [
+                            const Text(
+                              "Vehicle number:",
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                vNumber,
+                                style: TextStyle(fontSize: 17),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Date:",
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                date,
+                                style: TextStyle(fontSize: 17),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 20.0,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      backgroundColor: Colors.blueGrey,
+                                      textStyle: const TextStyle(fontSize: 15)),
+                                  onPressed: () async {
+                                    submit();
+                                  },
+                                  child: const Text('Submit')),
+                            ),
+                          ],
+                        )
+                      ],
+                    )
+                  : Container(),
             ],
           ),
         ),

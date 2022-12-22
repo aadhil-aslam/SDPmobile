@@ -37,6 +37,8 @@ class _RegistrationState extends State<Registration> {
             "Last requested": "null",
             "Requested": "No",
             "DeviceToken" : fcmToken,
+            "DateAndTime" : "Pending",
+            "requested amount": "null",
           });
       Navigator.push(
           context,
