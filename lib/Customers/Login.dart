@@ -172,11 +172,11 @@ class _LoginState extends State<Login> {
               Center(
                 child: const Text(
                   "Sign in",
-                  style: TextStyle(fontSize: 30),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(
-                height: 30.0,
+                height: 15.0,
               ),
               // Stack(
               //   children: [

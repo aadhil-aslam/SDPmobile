@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sdp/Customers/Login.dart';
 import '../auth.dart';
 import '../navdrawer.dart';
@@ -33,6 +35,61 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+
+  String selectedStationName = 'Colombo';
+  String stationID = '001';
+
+  late Station selectedStation;
+
+  List<Station> station = <Station>[
+    const Station("PF001", 'Colombo'),
+    const Station("PF002", 'Kalutara'),
+    const Station("PF003", 'Jaffna'),
+    const Station("PF004", 'Kandy'),
+    const Station("PF005", 'Hatton'),
+    const Station("PF006", 'Batticalo')
+  ];
+
+  _logoutAlert() {
+    return showDialog(
+        context: context,
+        builder: (parm) {
+          return AlertDialog(
+            title: const Text(
+              'Do you want to logout?',
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+            actions: [
+              TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    //backgroundColor: Colors.blueGrey,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel', style: TextStyle(fontSize: 17))),
+              TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    //backgroundColor: Colors.red,
+                  ),
+                  onPressed: () async {
+                    FirebaseAuth.instance.signOut();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => HomeCustomer()));
+                  },
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(fontSize: 17),
+                  )),
+            ],
+          );
+        });
+  }
+
   late String fcmT;
   updateDeviceToken() async {
     final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -139,7 +196,9 @@ class _CustomerPageState extends State<CustomerPage> {
 
   bool requested = false;
 
-  late int currentLimit;
+  int currentLimit = 1;
+  double percentage = 0.1;
+  int Limit = 1;
 
   final now = DateTime.now();
 
@@ -147,7 +206,7 @@ class _CustomerPageState extends State<CustomerPage> {
 
   late String Name = "";
   late String Vnumber = "";
-  late String QuotaLimit = "";
+  late String isRequested = "";
 
   ShowDialog() {
     showDialog(
@@ -159,7 +218,7 @@ class _CustomerPageState extends State<CustomerPage> {
                 Text(
                   textAlign: TextAlign.center,
                   'Please request within available limit',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 22),
+                  style: TextStyle(color: Colors.black, fontSize: 22),
                 ),
                 SizedBox(
                   height: 20,
@@ -185,7 +244,7 @@ class _CustomerPageState extends State<CustomerPage> {
                 Text(
                   textAlign: TextAlign.center,
                   'Please request after previous order completed',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 22),
+                  style: TextStyle(color: Colors.black, fontSize: 22),
                 ),
                 SizedBox(
                   height: 20,
@@ -215,54 +274,28 @@ class _CustomerPageState extends State<CustomerPage> {
           .get()
           .then((ds) {
         Name = ds.data()!['username'];
+        Vnumber = ds.data()!['Vehicle Number'];
+        isRequested = ds.data()!['Requested'];
+        currentLimit = int.parse(ds.data()!['balanceQuota']);
+        Limit = int.parse(ds.data()!['quota']);
+        percentage = (currentLimit * Limit / 100);
+        setState(() {
+          requested = isRequested == "Yes";
+        });
       }).catchError((e) {});
     } else {
       Name = '';
     }
   }
 
-  _fetchVnumber() async {
-    final firebaseUser = await FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null) {
-      await FirebaseFirestore.instance
-          .collection("User")
-          .doc(firebaseUser.uid)
-          .get()
-          .then((ds) {
-        Vnumber = ds.data()!['Vehicle Number'];
-      }).catchError((e) {});
-    } else {
-      Vnumber = '';
-    }
-  }
-
-  _fetchQuota() async {
-    final firebaseUser = await FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null) {
-      await FirebaseFirestore.instance
-          .collection("User")
-          .doc(firebaseUser.uid)
-          .get()
-          .then((ds) {
-        QuotaLimit = ds.data()!['quota'];
-      }).catchError((e) {
-        print(e);
-      });
-    } else {
-      QuotaLimit = '';
-    }
-  }
-
   @override
   void initState() {
-    print("init");
     // TODO: implement initState
     super.initState();
     _fetchName();
-    _fetchVnumber();
+    selectedStation = station[0];
     requestPermission();
     updateDeviceToken();
-    requested = true;
     super.initState();
   }
 
@@ -322,7 +355,7 @@ class _CustomerPageState extends State<CustomerPage> {
                   children: const [
                     Text(
                       'No quota available',
-                      style: TextStyle(color: Colors.blueGrey, fontSize: 18),
+                      style: TextStyle(color: Colors.black, fontSize: 18),
                     ),
                     SizedBox(
                       height: 20,
@@ -418,11 +451,11 @@ class _CustomerPageState extends State<CustomerPage> {
                                       .split(" ")
                                       .elementAt(0),
                               style: TextStyle(
-                                  fontSize: 30, fontWeight: FontWeight.bold));
+                                  fontSize: 30, fontWeight: FontWeight.w500));
                         }
                         return Text("Welcome",
                             style: TextStyle(
-                                fontSize: 30, fontWeight: FontWeight.bold));
+                                fontSize: 30, fontWeight: FontWeight.w500));
                       },
                     ),
                   ),
@@ -452,11 +485,7 @@ class _CustomerPageState extends State<CustomerPage> {
                         //     'Requested': 'No', 'Token': 'Pending',
                         //   });
                         // }
-                        FirebaseAuth.instance.signOut();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => HomeCustomer()));
+                        _logoutAlert();
                       },
                       icon: Icon(Icons.logout),
                       //child: const Text('Sign Out')),
@@ -624,7 +653,7 @@ class _CustomerPageState extends State<CustomerPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Date and Time:",
+                              "Date:",
                               style: TextStyle(fontSize: 17),
                             ),
                             const SizedBox(
@@ -655,49 +684,141 @@ class _CustomerPageState extends State<CustomerPage> {
                     )
                   : SizedBox.shrink(),
               const SizedBox(
-                height: 150.0,
+                height: 120.0,
               ),
+
+              ///graph
+              // Container(
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(8.0),
+              //       color: Colors.white,
+              //       boxShadow: [
+              //         BoxShadow(
+              //           color: Colors.black12,
+              //           blurRadius: 2.0,
+              //           spreadRadius: 1.0,
+              //           offset: Offset(
+              //               2.0, 2.0), // shadow direction: bottom right
+              //         )
+              //       ],
+              //     ),
+              //     child: Container(
+              //         width: MediaQuery.of(context).size.width,
+              //         height: 110,
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //
+              //             Padding(
+              //               padding: const EdgeInsets.all(12.0),
+              //               child: Row(
+              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //                 children: [
+              //                   Center(
+              //                       child: Text(
+              //                         "Quota limit",
+              //                         style: TextStyle(fontSize: 18,fontWeight: FontWeight.w500),
+              //                       )),
+              //                   Center(
+              //                       child: Text(
+              //                         "${Limit} litres",
+              //                         style: TextStyle(fontSize: 18,fontWeight: FontWeight.w500),
+              //                       )),
+              //                 ],
+              //               ),
+              //             ),
+              //             LinearPercentIndicator(
+              //               width: MediaQuery.of(context).size.width - 40,
+              //               animation: true,
+              //               lineHeight: 15.0,
+              //               animationDuration: 2000,
+              //               percent: percentage,
+              //               center: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              //                 //key: Key(_uid),
+              //                 stream: FirebaseFirestore.instance
+              //                     .collection('User')
+              //                     .doc(FirebaseAuth.instance.currentUser!.uid)
+              //                     .snapshots(),
+              //                 builder: (context, snapshot) {
+              //                   //print(FirebaseAuth.instance.currentUser!.uid);
+              //                   if (snapshot.hasData) {
+              //                     //String username = snapshot.data?.data()?['username'];
+              //                     currentLimit = int.parse(snapshot.data?.data()?['balanceQuota']);
+              //                     Limit = int.parse(snapshot.data?.data()?['quota']);
+              //                     percentage = (currentLimit*Limit/100);
+              //                     return Text(snapshot.data!['balanceQuota'] + " litres",
+              //                         style: TextStyle(fontSize: 10, color: Colors.grey.shade700));
+              //                   }
+              //                   return Text("0 litres", style: TextStyle(fontSize: 40));
+              //                 },
+              //               ),
+              //               barRadius: const Radius.circular(16),
+              //               progressColor: Colors.red.shade700,
+              //             ),
+              //             Padding(
+              //               padding: const EdgeInsets.all(12.0),
+              //               child: Text(
+              //                 "${currentLimit} litres remaining",
+              //                 style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),
+              //               ),
+              //             ),
+              //           ],
+              //         ),)),
+              ///graph
 
               Column(
                 children: [
                   const Center(
                       child: Text(
                     "Quota limit",
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   )),
                   const SizedBox(
                     height: 8.0,
                   ),
                   Center(
-                    child:
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      //key: Key(_uid),
-                      stream: FirebaseFirestore.instance
-                          .collection('User')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        //print(FirebaseAuth.instance.currentUser!.uid);
-                        if (snapshot.hasData) {
-                          //String username = snapshot.data?.data()?['username'];
-                          currentLimit =
-                              int.parse(snapshot.data?.data()?['quota']);
-                          return Text(snapshot.data!['quota'] + " litres",
-                              style: TextStyle(fontSize: 40));
-                        }
-                        return Text("0 litres", style: TextStyle(fontSize: 40));
-                      },
-                    ),
-                    // FutureBuilder(
-                    //     future: _fetchQuota(),
-                    //     builder: (context, snapshot) {
-                    //       if (snapshot.connectionState != ConnectionState.done)
-                    //         return Text("0 litres",
-                    //             style: TextStyle(fontSize: 40));
-                    //       return Text(QuotaLimit + " litres",
-                    //           style: TextStyle(fontSize: 40));
-                    //     }),
-                  ),
+                      child: Text(
+                    "$currentLimit litres",
+                    style: TextStyle(fontSize: 40),
+                  )),
+
+                  /// CircularPercentIndicator
+                  // const SizedBox(
+                  //   height: 8.0,
+                  // ),
+                  // Center(
+                  //   child:
+                  //   CircularPercentIndicator(
+                  //     radius: 80.0,
+                  //     lineWidth: 13.0,
+                  //     animation: true,
+                  //     percent: percentage,
+                  //     center: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  //       //key: Key(_uid),
+                  //       stream: FirebaseFirestore.instance
+                  //           .collection('User')
+                  //           .doc(FirebaseAuth.instance.currentUser!.uid)
+                  //           .snapshots(),
+                  //       builder: (context, snapshot) {
+                  //         //print(FirebaseAuth.instance.currentUser!.uid);
+                  //         if (snapshot.hasData) {
+                  //           //String username = snapshot.data?.data()?['username'];
+                  //           currentLimit = int.parse(snapshot.data?.data()?['balanceQuota']);
+                  //           Limit = int.parse(snapshot.data?.data()?['quota']);
+                  //           percentage = (currentLimit*Limit/100);
+                  //           return Text(snapshot.data!['quota'] + " litres",
+                  //               style: TextStyle(fontSize: 30));
+                  //         }
+                  //         return Text("0 litres", style: TextStyle(fontSize: 30));
+                  //       },
+                  //     ),
+                  //     circularStrokeCap: CircularStrokeCap.round,
+                  //     progressColor: Colors.red.shade700,
+                  //   ),
+                  //
+                  /// CircularPercentIndicator
+
+                  // ),
                   // const SizedBox(
                   //   height: 20.0,
                   // ),
@@ -713,7 +834,74 @@ class _CustomerPageState extends State<CustomerPage> {
                   //       labelText: 'Token Number',
                   //       errorText:
                   //       _validateNumber ? 'Number Can\'t Be Empty' : null,
-                  //     )),
+                  //     )
+                  //     ),
+                  SizedBox(
+                    height: 18.0,
+                  ),
+                  Container(
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(width: 0.5, style: BorderStyle.solid),
+                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                      child: DropdownButton<Station>(
+                        hint: Text("Select Vehicle"),
+                        value: selectedStation,
+                        onChanged: (Station? newValue) {
+                          setState(() {
+                            selectedStation = newValue!;
+                            stationID = selectedStation.id;
+                            selectedStationName = selectedStation.name;
+                          });
+                          print(selectedStationName);
+                        },
+                        items: station.map((Station vehicles) {
+                          return new DropdownMenuItem<Station>(
+                            value: vehicles,
+                            child: new Text(
+                              vehicles.name,
+                              style: new TextStyle(color: Colors.black),
+                            ),
+                          );
+                        }).toList(),
+                        //borderRadius: BorderRadius.circular(10),
+                        underline: SizedBox(),
+                        isExpanded: true,
+                      ),
+                      //               DropdownButton<String>(
+                      //                 items: <String>[
+                      //                   "Bike",
+                      //                   "Car",
+                      //                   "Van",
+                      //                   "Lorry",
+                      //                   "Bus",
+                      //                   "Three wheeler"
+                      //                 ].map((String value) {
+                      //                   return DropdownMenuItem<String>(
+                      //                     value: value,
+                      //                     child: Text(value),
+                      //                   );
+                      //                 }).toList(),
+                      //                 hint: Text(selectedCategory.isEmpty
+                      //                     ? 'Vehicle type'
+                      //                     : selectedCategory),
+                      //                 //borderRadius: BorderRadius.circular(10),
+                      //                 underline: SizedBox(),
+                      //                 isExpanded: true,
+                      //                 onChanged: (value) {
+                      //                   if (value != null) {
+                      //                     setState(() {
+                      //                       selectedCategory = value;
+                      //                     });
+                      //                   }
+                      //                 },
+                      //               ),
+                    ),
+                  ),
                   SizedBox(
                     height: 18.0,
                   ),
@@ -772,6 +960,8 @@ class _CustomerPageState extends State<CustomerPage> {
                                       "Token": "Pending",
                                       "Requested time": now,
                                       "DateAndTime": "Pending",
+                                      "stationID": stationID,
+                                      "stationName": selectedStationName,
                                     });
                                     print(Name);
                                     String docId = docRef.id;
@@ -788,7 +978,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                             .instance.currentUser!.uid)
                                         .update({
                                       'Requested': "Yes",
-                                      'quota': currentLimit.toString(),
+                                      'balanceQuota': currentLimit.toString(),
                                       'Last requested': now,
                                       "DateAndTime": "Pending",
                                       "Token": "Pending",
@@ -859,4 +1049,12 @@ class _CustomerPageState extends State<CustomerPage> {
       ),
     );
   }
+}
+
+
+class Station {
+  const Station(this.id, this.name);
+
+  final String id;
+  final String name;
 }

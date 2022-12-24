@@ -33,6 +33,7 @@ class _RegistrationState extends State<Registration> {
             "Vehicle Number": _vehicleNumberController.text,
             "Vehicle type": selectedCategory,
             "quota": quotaLimit,
+            "balanceQuota": quotaLimit,
             "Token": "Pending",
             "Last requested": "null",
             "Requested": "No",
@@ -80,10 +81,8 @@ class _RegistrationState extends State<Registration> {
 
   bool free = true;
 
-  var _vehicleType = ["Bike", "Car", "Van", "Lorry", "Bus", "Three wheeler"];
-
-  String selectedCategory = '';
-  String quotaLimit = "";
+  String selectedCategory = 'Bike';
+  String quotaLimit = '5';
 
   late Vehicle selectedUser;
 
@@ -146,11 +145,11 @@ class _RegistrationState extends State<Registration> {
               Center(
                 child: const Text(
                   "Register",
-                  style: TextStyle(fontSize: 30),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(
-                height: 30.0,
+                height: 15.0,
               ),
               Column(
                 children: [
@@ -215,6 +214,7 @@ class _RegistrationState extends State<Registration> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
                       child: DropdownButton<Vehicle>(
+                        hint: Text("Select Vehicle"),
                         value: selectedUser,
                         onChanged: (Vehicle? newValue) {
                           setState(() {
@@ -222,6 +222,7 @@ class _RegistrationState extends State<Registration> {
                             quotaLimit = selectedUser.quota;
                             selectedCategory = selectedUser.name;
                           });
+                          print(selectedCategory);
                         },
                         items: vehicles.map((Vehicle vehicles) {
                           return new DropdownMenuItem<Vehicle>(
@@ -358,6 +359,23 @@ class _RegistrationState extends State<Registration> {
                       //           _contactEmailController.text = '';
                       //         },
                       //         child: const Text('Clear')))
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Already have an account?'),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HomeCustomer()));
+                        },
+                        child: const Text(
+                          'Sign in',
+                        ),
+                      ),
                     ],
                   ),
                 ],

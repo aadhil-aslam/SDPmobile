@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ionicons/ionicons.dart';
 
 class SecondTwo extends StatefulWidget {
   const SecondTwo({Key? key}) : super(key: key);
@@ -32,7 +33,7 @@ class _SecondTwoState extends State<SecondTwo> {
                   children: const [
                     Text(
                       'Invalid token number',
-                      style: TextStyle(color: Colors.blueGrey, fontSize: 18),
+                      style: TextStyle(color: Colors.black, fontSize: 18),
                     ),
                     SizedBox(
                       height: 20,
@@ -116,12 +117,39 @@ class _SecondTwoState extends State<SecondTwo> {
               const SizedBox(
                 height: 10.0,
               ),
-              const Text(
-                "Fuel Station",
-                style: TextStyle(fontSize: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: const Text(
+                      "Fuel Station",
+                      style: TextStyle(fontSize: 30),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 100.0),
+                    child: IconButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blueGrey,
+                          textStyle: const TextStyle(fontSize: 15)),
+                      onPressed: () {
+                        setState(() {
+                          quota = false;
+                          free = false;
+                          vNumber = 'Vehicle Number';
+                        });
+                      },
+                      icon: Icon(
+                        Ionicons.refresh_circle_outline,
+                        size: 30,
+                      ),
+                      //child: const Text('Sign Out')),
+                    ),
+                  )
+                ],
               ),
               const SizedBox(
-                height: 10.0,
+                height: 5.0,
               ),
               Row(
                 children: [
