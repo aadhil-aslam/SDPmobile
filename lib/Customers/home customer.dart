@@ -1,12 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sdp/Customers/registration.dart';
-import 'package:sdp/Station/second.dart';
-
-import '../Station/first.dart';
-import '../Station/home.dart';
-import '../Station/third.dart';
 import '../navdrawer.dart';
 import 'CustomerPage.dart';
 import 'Login.dart';
@@ -27,12 +21,6 @@ class _HomeCustomerState extends State<HomeCustomer> {
       pageIndex = index;
     });
   }
-
-  final pages = [
-    First(),
-    Second(),
-    Third(),
-  ];
 
   @override
   Widget build(BuildContext context) {

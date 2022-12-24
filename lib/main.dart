@@ -4,11 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sdp/Customers/home%20customer.dart';
-
 import 'Customers/CustomerPage.dart';
-import 'Customers/Login.dart';
-import 'Customers/widget_tree.dart';
-import 'Station/home.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();

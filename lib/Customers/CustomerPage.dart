@@ -6,12 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sdp/Customers/Login.dart';
 import '../auth.dart';
 import '../navdrawer.dart';
 import 'home customer.dart';
+
+enum FuelType { petrol, diesel }
 
 class CustomerPage extends StatefulWidget {
   CustomerPage({Key? key}) : super(key: key);
@@ -35,9 +38,11 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+  FuelType? _fueltype = FuelType.petrol;
 
   String selectedStationName = 'Colombo';
   String stationID = '001';
+  String selectedFuelType = '';
 
   late Station selectedStation;
 
@@ -199,8 +204,6 @@ class _CustomerPageState extends State<CustomerPage> {
   int currentLimit = 1;
   double percentage = 0.1;
   int Limit = 1;
-
-  final now = DateTime.now();
 
   late bool isLoggedIn;
 
@@ -777,10 +780,29 @@ class _CustomerPageState extends State<CustomerPage> {
                     height: 8.0,
                   ),
                   Center(
-                      child: Text(
-                    "$currentLimit litres",
-                    style: TextStyle(fontSize: 40),
-                  )),
+                    child:
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      //key: Key(_uid),
+                      stream: FirebaseFirestore.instance
+                          .collection('User')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        //print(FirebaseAuth.instance.currentUser!.uid);
+                        if (snapshot.hasData) {
+                          //String username = snapshot.data?.data()?['username'];
+                          currentLimit =
+                              int.parse(snapshot.data?.data()?['balanceQuota']);
+                          Limit = int.parse(snapshot.data?.data()?['quota']);
+                          percentage = (currentLimit * Limit / 100);
+                          return Text(
+                              snapshot.data!['balanceQuota'] + " litres",
+                              style: TextStyle(fontSize: 40));
+                        }
+                        return Text("0 litres", style: TextStyle(fontSize: 40));
+                      },
+                    ),
+                  ),
 
                   /// CircularPercentIndicator
                   // const SizedBox(
@@ -806,7 +828,7 @@ class _CustomerPageState extends State<CustomerPage> {
                   //           currentLimit = int.parse(snapshot.data?.data()?['balanceQuota']);
                   //           Limit = int.parse(snapshot.data?.data()?['quota']);
                   //           percentage = (currentLimit*Limit/100);
-                  //           return Text(snapshot.data!['quota'] + " litres",
+                  //           return Text(snapshot.data!['balanceQuota'] + " litres",
                   //               style: TextStyle(fontSize: 30));
                   //         }
                   //         return Text("0 litres", style: TextStyle(fontSize: 30));
@@ -815,10 +837,9 @@ class _CustomerPageState extends State<CustomerPage> {
                   //     circularStrokeCap: CircularStrokeCap.round,
                   //     progressColor: Colors.red.shade700,
                   //   ),
-                  //
+                  //  ),
                   /// CircularPercentIndicator
 
-                  // ),
                   // const SizedBox(
                   //   height: 20.0,
                   // ),
@@ -872,39 +893,49 @@ class _CustomerPageState extends State<CustomerPage> {
                         underline: SizedBox(),
                         isExpanded: true,
                       ),
-                      //               DropdownButton<String>(
-                      //                 items: <String>[
-                      //                   "Bike",
-                      //                   "Car",
-                      //                   "Van",
-                      //                   "Lorry",
-                      //                   "Bus",
-                      //                   "Three wheeler"
-                      //                 ].map((String value) {
-                      //                   return DropdownMenuItem<String>(
-                      //                     value: value,
-                      //                     child: Text(value),
-                      //                   );
-                      //                 }).toList(),
-                      //                 hint: Text(selectedCategory.isEmpty
-                      //                     ? 'Vehicle type'
-                      //                     : selectedCategory),
-                      //                 //borderRadius: BorderRadius.circular(10),
-                      //                 underline: SizedBox(),
-                      //                 isExpanded: true,
-                      //                 onChanged: (value) {
-                      //                   if (value != null) {
-                      //                     setState(() {
-                      //                       selectedCategory = value;
-                      //                     });
-                      //                   }
-                      //                 },
-                      //               ),
                     ),
                   ),
                   SizedBox(
-                    height: 18.0,
-                  ),
+                    height: 18.0,),
+                  // Container(
+                  //   decoration: ShapeDecoration(
+                  //     shape: RoundedRectangleBorder(
+                  //       side: BorderSide(width: 0.5, style: BorderStyle.solid),
+                  //       borderRadius: BorderRadius.all(Radius.circular(3.0)),
+                  //     ),
+                  //   ),
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  //     child:
+                  //                   DropdownButton<String>(
+                  //                     items: <String>[
+                  //                       "Petrol",
+                  //                       "Diesel"
+                  //                     ].map((String value) {
+                  //                       return DropdownMenuItem<String>(
+                  //                         value: value,
+                  //                         child: Text(value),
+                  //                       );
+                  //                     }).toList(),
+                  //                     hint: Text(selectedFuelType.isEmpty
+                  //                         ? 'Fuel type'
+                  //                         : selectedFuelType),
+                  //                     //borderRadius: BorderRadius.circular(10),
+                  //                     underline: SizedBox(),
+                  //                     isExpanded: true,
+                  //                     onChanged: (value) {
+                  //                       if (value != null) {
+                  //                         setState(() {
+                  //                           selectedFuelType = value;
+                  //                         });
+                  //                       }
+                  //                     },
+                  //                   ),
+                  //   ),
+                  // ),
+                  // SizedBox(
+                  //   height: 18.0,
+                  // ),
                   Form(
                     key: _formKey,
                     child: TextFormField(
@@ -932,6 +963,54 @@ class _CustomerPageState extends State<CustomerPage> {
                   SizedBox(
                     height: 10.0,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text('Fuel type:', style: TextStyle(fontSize: 16),),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Row(
+                            children: [
+                              Radio<FuelType>(
+                                value: FuelType.petrol,
+                                groupValue: _fueltype,
+                                onChanged: (FuelType? value) {
+                                  setState(() {
+                                    _fueltype = value;
+                                  });
+                                },
+                              ),
+                              const Expanded(child: Text('Petrol'))
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Row(
+                            children: [
+                              Radio<FuelType>(
+                                value: FuelType.diesel,
+                                groupValue: _fueltype,
+                                onChanged: (FuelType? value) {
+                                  setState(() {
+                                    _fueltype = value;
+                                  });
+                                },
+                              ),
+                              const Expanded(child: Text('Diesel'))
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -946,6 +1025,10 @@ class _CustomerPageState extends State<CustomerPage> {
                                 if (currentLimit >=
                                     int.parse(_fuelAmountController.text)) {
                                   if (requested == false) {
+                                    var dateFormat =
+                                        DateFormat('MM/dd/yyyy hh:mm a');
+                                    var now = dateFormat.format(DateTime.now());
+
                                     DocumentReference docRef =
                                         await FirebaseFirestore.instance
                                             .collection("Requests")
@@ -958,10 +1041,12 @@ class _CustomerPageState extends State<CustomerPage> {
                                       "Vehicle number": Vnumber,
                                       "Status": "Pending",
                                       "Token": "Pending",
-                                      "Requested time": now,
+                                      "Requested time": now.toString(),
                                       "DateAndTime": "Pending",
                                       "stationID": stationID,
                                       "stationName": selectedStationName,
+                                      "Ordered": false,
+                                      "fuelType": selectedFuelType,
                                     });
                                     print(Name);
                                     String docId = docRef.id;
@@ -979,11 +1064,13 @@ class _CustomerPageState extends State<CustomerPage> {
                                         .update({
                                       'Requested': "Yes",
                                       'balanceQuota': currentLimit.toString(),
-                                      'Last requested': now,
+                                      'Last requested': now.toString(),
                                       "DateAndTime": "Pending",
                                       "Token": "Pending",
                                       "requested amount":
                                           _fuelAmountController.text,
+                                      "Requested Station": selectedStationName,
+                                      "Rescheduled Date": "null",
                                     });
                                     setState(() {
                                       requested = true;
@@ -1006,6 +1093,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                 // "Token": "Pending"
                                 // });
                                 // setState(() {});
+                                _fuelAmountController.text = "";
                               }
                             },
                             child: const Text('Request fuel')),
@@ -1050,7 +1138,6 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 }
-
 
 class Station {
   const Station(this.id, this.name);

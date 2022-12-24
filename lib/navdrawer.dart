@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'Customers/customer.dart';
-import 'Customers/home customer.dart';
-import 'Station/home.dart';
+import 'Station/second_2.dart';
 
 class NavDrawer extends StatelessWidget {
   @override
@@ -42,7 +40,7 @@ class NavDrawer extends StatelessWidget {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => Home()));
+                      builder: (context) => SecondTwo()));
             },
           ),
           ListTile(

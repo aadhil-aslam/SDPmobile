@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ionicons/ionicons.dart';
 
+import '../navdrawer.dart';
+
 class SecondTwo extends StatefulWidget {
   const SecondTwo({Key? key}) : super(key: key);
 
@@ -54,6 +56,7 @@ class _SecondTwoState extends State<SecondTwo> {
   String fuelAmount = 'requested amount';
   String customerId = '';
   String requestId = '';
+  String Station = '';
 
   search() async {
     final querySnapshot = await FirebaseFirestore.instance
@@ -61,7 +64,6 @@ class _SecondTwoState extends State<SecondTwo> {
         .limit(1)
         .where('Token', isEqualTo: _tokenController.text)
         .get();
-
     for (var doc in querySnapshot.docs) {
       // Getting data directly
       setState(() {
@@ -69,6 +71,7 @@ class _SecondTwoState extends State<SecondTwo> {
         date = doc.get('DateAndTime');
         fuelAmount = doc.get('requested amount');
         customerId = doc.id;
+        Station = doc.get('Requested Station');
       });
       print(vNumber);
       print(date);
@@ -108,6 +111,26 @@ class _SecondTwoState extends State<SecondTwo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: NavDrawer(),
+      appBar: AppBar(
+        backgroundColor: Colors.red[700],
+        title: const Text(
+          'PowerFuel ',
+          style: TextStyle(color: Colors.white),
+        ),
+        // actions: <Widget>[
+        //   IconButton(
+        //     icon: const Icon(
+        //         Icons.search),
+        //     onPressed: () {
+        //       setState(() {
+        //       });
+        //     },
+        //   ),
+        // ],
+        //centerTitle: true,
+        elevation: 0.0,
+      ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(18.0),
@@ -157,6 +180,10 @@ class _SecondTwoState extends State<SecondTwo> {
                     child: TextField(
                       //autofocus: true,
                       controller: _tokenController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
+                      ],
                       decoration: const InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
@@ -225,7 +252,26 @@ class _SecondTwoState extends State<SecondTwo> {
                           ],
                         ),
                         const SizedBox(
-                          height: 20.0,
+                          height: 15.0,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Station:",
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                Station,
+                                style: TextStyle(fontSize: 17),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 15.0,
                         ),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
