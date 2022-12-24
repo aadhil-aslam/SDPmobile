@@ -38,6 +38,7 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+
   FuelType? _fueltype = FuelType.petrol;
 
   String selectedStationName = 'Colombo';
@@ -975,12 +976,12 @@ class _CustomerPageState extends State<CustomerPage> {
                           flex: 1,
                           child: Row(
                             children: [
-                              Radio<FuelType>(
-                                value: FuelType.petrol,
-                                groupValue: _fueltype,
-                                onChanged: (FuelType? value) {
+                              Radio(
+                                value: "Petrol",
+                                groupValue: selectedFuelType,
+                                onChanged: (value) {
                                   setState(() {
-                                    _fueltype = value;
+                                    selectedFuelType = value!;
                                   });
                                 },
                               ),
@@ -992,12 +993,12 @@ class _CustomerPageState extends State<CustomerPage> {
                           flex: 1,
                           child: Row(
                             children: [
-                              Radio<FuelType>(
-                                value: FuelType.diesel,
-                                groupValue: _fueltype,
-                                onChanged: (FuelType? value) {
+                              Radio(
+                                value: "Diesel",
+                                groupValue: selectedFuelType,
+                                onChanged: (value) {
                                   setState(() {
-                                    _fueltype = value;
+                                    selectedFuelType = value!;
                                   });
                                 },
                               ),
