@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:sdp/Customers/Login.dart';
@@ -38,11 +39,10 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
-
   FuelType? _fueltype = FuelType.petrol;
 
   String selectedStationName = 'Colombo';
-  String stationID = '001';
+  String stationID = 'PF001';
   String selectedFuelType = '';
 
   late Station selectedStation;
@@ -99,6 +99,7 @@ class _CustomerPageState extends State<CustomerPage> {
   late String fcmT;
   updateDeviceToken() async {
     final fcmToken = await FirebaseMessaging.instance.getToken();
+    print(fcmToken);
     if (FirebaseAuth.instance.currentUser != null) {
       await FirebaseFirestore.instance
           .collection("User")
@@ -209,6 +210,7 @@ class _CustomerPageState extends State<CustomerPage> {
   late bool isLoggedIn;
 
   late String Name = "";
+  late String Vtype = "";
   late String Vnumber = "";
   late String isRequested = "";
 
@@ -278,6 +280,7 @@ class _CustomerPageState extends State<CustomerPage> {
           .get()
           .then((ds) {
         Name = ds.data()!['username'];
+        Vtype = ds.data()!['Vehicle type'];
         Vnumber = ds.data()!['Vehicle Number'];
         isRequested = ds.data()!['Requested'];
         currentLimit = int.parse(ds.data()!['balanceQuota']);
@@ -378,16 +381,8 @@ class _CustomerPageState extends State<CustomerPage> {
   @override
   Widget build(BuildContext context) {
     DeviceToken();
-
-    // final _uid = FirebaseAuth.instance.currentUser!.uid;
-    //
-    // final Stream<DocumentSnapshot<Map<String, dynamic>>> _usersStream =
-    // FirebaseFirestore.instance
-    //     .collection('UserData')
-    //     .doc(_uid)
-    //     .snapshots();
-
     return Scaffold(
+      //backgroundColor: Colors.grey[200],
       drawer: NavDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.red[700],
@@ -395,17 +390,6 @@ class _CustomerPageState extends State<CustomerPage> {
           'PowerFuel',
           style: TextStyle(color: Colors.white),
         ),
-        // actions: <Widget>[
-        //   IconButton(
-        //     icon: const Icon(
-        //         Icons.search),
-        //     onPressed: () {
-        //       setState(() {
-        //       });
-        //     },
-        //   ),
-        // ],
-        //centerTitle: true,
         elevation: 0.0,
       ),
       body: SingleChildScrollView(
@@ -419,6 +403,10 @@ class _CustomerPageState extends State<CustomerPage> {
               ),
               Row(
                 children: [
+                  const SizedBox(
+                    width: 12.0,
+                  ),
+
                   // StreamBuilder<QuerySnapshot>(
                   //   stream: FirebaseFirestore.instance.collection('User').snapshots(),
                   //   builder: (context, snapshot) {
@@ -446,6 +434,7 @@ class _CustomerPageState extends State<CustomerPage> {
                         if (snapshot.hasData) {
                           //String username = snapshot.data?.data()?['username'];
                           //Token = snapshot.data?.data()?['Token'];
+                          Vtype = snapshot.data?.data()!['Vehicle type'];
                           requested =
                               snapshot.data?.data()?['Requested'] == "Yes";
                           //print(snapshot.data?.data()?['username']);
@@ -505,36 +494,28 @@ class _CustomerPageState extends State<CustomerPage> {
                 height: 5.0,
               ),
 
-              // Card(
-              //   child: ListTile(
-              //     title: Text('Vehicle number:',
-              //         style: TextStyle(fontSize: 17)),
-              //     trailing: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              //       //key: Key(_uid),
-              //       stream: FirebaseFirestore.instance
-              //           .collection('User')
-              //           .doc(FirebaseAuth.instance.currentUser!.uid)
-              //           .snapshots(),
-              //       builder: (context, snapshot) {
-              //         if (snapshot.hasData) {
-              //           //String username = snapshot.data?.data()?['username'];
-              //           //print(snapshot.data?.data()?['Vehicle Number']);
-              //           return Text(snapshot.data!['Vehicle Number'],
-              //               style: TextStyle(fontSize: 17));
-              //         }
-              //         return Text("Vehicle Number",
-              //             style: TextStyle(fontSize: 20));
-              //       },
-              //     ),
-              //   ),
-              // ),
-
               Row(
                 children: [
-                  Text(
-                    "Vehicle number:",
-                    style: TextStyle(fontSize: 17),
+                  const SizedBox(
+                    width: 12.0,
                   ),
+                  // Text(
+                  //   "Vehicle number:",
+                  //   style: TextStyle(fontSize: 17),
+                  // ),
+                  Icon(Vtype == "Car"
+                      ? Ionicons.car
+                      : Vtype == "Bus"
+                          ? Icons.directions_bus
+                          : Vtype == "Bike"
+                              ? Icons.motorcycle_rounded
+                              : Vtype == "Lorry"
+                                  ? Icons.local_shipping
+                                  : Vtype == "Van"
+                                      ? Icons.directions_bus
+                                      : Vtype == "Three wheeler"
+                                          ? Icons.electric_rickshaw
+                                          : Ionicons.bicycle),
                   const SizedBox(
                     width: 10.0,
                   ),
@@ -555,14 +536,6 @@ class _CustomerPageState extends State<CustomerPage> {
                           style: TextStyle(fontSize: 20));
                     },
                   ),
-                  // FutureBuilder(
-                  //     future: _fetchVnumber(),
-                  //     builder: (context, snapshot) {
-                  //       if (snapshot.connectionState != ConnectionState.done)
-                  //         return Text("Vehicle Number",
-                  //             style: TextStyle(fontSize: 20));
-                  //       return Text(Vnumber, style: TextStyle(fontSize: 17));
-                  //     }),
                 ],
               ),
               const SizedBox(
@@ -571,116 +544,223 @@ class _CustomerPageState extends State<CustomerPage> {
               requested
                   ? Column(
                       children: [
-                        // Card(
-                        //   child: ListTile(
-                        //     title: Text('Token Number:',
-                        //         style: TextStyle(fontSize: 17)),
-                        //     trailing: StreamBuilder<
-                        //         DocumentSnapshot<Map<String, dynamic>>>(
-                        //       //key: Key(_uid),
-                        //       stream: FirebaseFirestore.instance
-                        //           .collection('User')
-                        //           .doc(FirebaseAuth.instance.currentUser!.uid)
-                        //           .snapshots(),
-                        //       builder: (context, snapshot) {
-                        //         if (snapshot.hasData) {
-                        //           //String username = snapshot.data?.data()?['username'];
-                        //           //print(snapshot.data?.data()?['Token Number']);
-                        //           return Text(snapshot.data?.data()?['Token'],
-                        //               style: TextStyle(fontSize: 17));
-                        //         }
-                        //         return Text("Token Number",
-                        //             style: TextStyle(fontSize: 20));
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
-
-                        Row(
-                          children: [
-                            Text(
-                              "Token Number:",
-                              style: TextStyle(fontSize: 17),
+                        Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 2.0,
+                                  spreadRadius: 1.0,
+                                  offset: Offset(2.0,
+                                      2.0), // shadow direction: bottom right
+                                )
+                              ],
                             ),
-                            const SizedBox(
-                              width: 10.0,
-                            ),
-                            StreamBuilder<
-                                DocumentSnapshot<Map<String, dynamic>>>(
-                              //key: Key(_uid),
-                              stream: FirebaseFirestore.instance
-                                  .collection('User')
-                                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  //String username = snapshot.data?.data()?['username'];
-                                  //print(snapshot.data?.data()?['Token Number']);
-                                  return Text(snapshot.data?.data()?['Token'],
-                                      style: TextStyle(fontSize: 17));
-                                }
-                                return Text("Token Number",
-                                    style: TextStyle(fontSize: 20));
-                              },
-                            ),
-                          ],
-                        ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Center(
+                                          child: Text(
+                                        "Token Number:",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500),
+                                      )),
+                                      Center(
+                                        child: StreamBuilder<
+                                            DocumentSnapshot<
+                                                Map<String, dynamic>>>(
+                                          //key: Key(_uid),
+                                          stream: FirebaseFirestore.instance
+                                              .collection('User')
+                                              .doc(FirebaseAuth
+                                                  .instance.currentUser!.uid)
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              //String username = snapshot.data?.data()?['username'];
+                                              //print(snapshot.data?.data()?['Vehicle Number']);
+                                              return Text(
+                                                snapshot.data!['Token'],
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              );
+                                            }
+                                            return Text("Token'",
+                                                style: TextStyle(fontSize: 20));
+                                          },
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )),
                         const SizedBox(
                           height: 10.0,
                         ),
-                        // Card(
-                        //   child: ListTile(
-                        //     title: Text('Date and Time:',
-                        //         style: TextStyle(fontSize: 17)),
-                        //     trailing: StreamBuilder<
-                        //         DocumentSnapshot<Map<String, dynamic>>>(
-                        //       //key: Key(_uid),
-                        //       stream: FirebaseFirestore.instance
-                        //           .collection('User')
-                        //           .doc(FirebaseAuth.instance.currentUser!.uid)
-                        //           .snapshots(),
-                        //       builder: (context, snapshot) {
-                        //         if (snapshot.hasData) {
-                        //           //String username = snapshot.data?.data()?['username'];
-                        //           //print(snapshot.data?.data()?['Token Number']);
-                        //           return Text(
-                        //               snapshot.data?.data()?['DateAndTime'],
-                        //               style: TextStyle(fontSize: 17));
-                        //         }
-                        //         return Text("Date and Time",
-                        //             style: TextStyle(fontSize: 20));
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "Date:",
-                              style: TextStyle(fontSize: 17),
-                            ),
+                            Container(
+                                width: MediaQuery.of(context).size.width / 2.3,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 2.0,
+                                      spreadRadius: 1.0,
+                                      offset: Offset(2.0,
+                                          2.0), // shadow direction: bottom right
+                                    )
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(Ionicons.calendar),
+                                          const SizedBox(
+                                            height: 25.0,
+                                          ),
+                                          Text(
+                                            "Date",
+                                            style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey),
+                                          ),
+                                          const SizedBox(
+                                            height: 8.0,
+                                          ),
+                                          StreamBuilder<
+                                              DocumentSnapshot<
+                                                  Map<String, dynamic>>>(
+                                            //key: Key(_uid),
+                                            stream: FirebaseFirestore.instance
+                                                .collection('User')
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                //String username = snapshot.data?.data()?['username'];
+                                                //print(snapshot.data?.data()?['Vehicle Number']);
+                                                return Text(
+                                                  snapshot.data!['TokenDate'],
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                );
+                                              }
+                                              return Text("Date'",
+                                                  style:
+                                                      TextStyle(fontSize: 20));
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )),
                             const SizedBox(
-                              width: 10.0,
+                              width: 15.0,
                             ),
-                            StreamBuilder<
-                                DocumentSnapshot<Map<String, dynamic>>>(
-                              //key: Key(_uid),
-                              stream: FirebaseFirestore.instance
-                                  .collection('User')
-                                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  //String username = snapshot.data?.data()?['username'];
-                                  //print(snapshot.data?.data()?['Token Number']);
-                                  return Text(
-                                      snapshot.data?.data()?['DateAndTime'],
-                                      style: TextStyle(fontSize: 17));
-                                }
-                                return Text("Date and Time",
-                                    style: TextStyle(fontSize: 20));
-                              },
+                            Expanded(
+                              child: Container(
+                                  width:
+                                      MediaQuery.of(context).size.width / 2.3,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 2.0,
+                                        spreadRadius: 1.0,
+                                        offset: Offset(2.0,
+                                            2.0), // shadow direction: bottom right
+                                      )
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Icon(Ionicons.time),
+                                            const SizedBox(
+                                              height: 25.0,
+                                            ),
+                                            Text(
+                                              "Time",
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.grey),
+                                            ),
+                                            const SizedBox(
+                                              height: 8.0,
+                                            ),
+                                            StreamBuilder<
+                                                DocumentSnapshot<
+                                                    Map<String, dynamic>>>(
+                                              //key: Key(_uid),
+                                              stream: FirebaseFirestore.instance
+                                                  .collection('User')
+                                                  .doc(FirebaseAuth.instance
+                                                      .currentUser!.uid)
+                                                  .snapshots(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.hasData) {
+                                                  //String username = snapshot.data?.data()?['username'];
+                                                  //print(snapshot.data?.data()?['Vehicle Number']);
+                                                  return Text(
+                                                    snapshot
+                                                        .data!['DateAndTime'],
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  );
+                                                }
+                                                return Text("Time'",
+                                                    style: TextStyle(
+                                                        fontSize: 20));
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )),
                             ),
                           ],
                         ),
@@ -688,450 +768,364 @@ class _CustomerPageState extends State<CustomerPage> {
                     )
                   : SizedBox.shrink(),
               const SizedBox(
-                height: 120.0,
+                height: 10.0,
               ),
 
               ///graph
-              // Container(
-              //     decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(8.0),
-              //       color: Colors.white,
-              //       boxShadow: [
-              //         BoxShadow(
-              //           color: Colors.black12,
-              //           blurRadius: 2.0,
-              //           spreadRadius: 1.0,
-              //           offset: Offset(
-              //               2.0, 2.0), // shadow direction: bottom right
-              //         )
-              //       ],
-              //     ),
-              //     child: Container(
-              //         width: MediaQuery.of(context).size.width,
-              //         height: 110,
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //
-              //             Padding(
-              //               padding: const EdgeInsets.all(12.0),
-              //               child: Row(
-              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //                 children: [
-              //                   Center(
-              //                       child: Text(
-              //                         "Quota limit",
-              //                         style: TextStyle(fontSize: 18,fontWeight: FontWeight.w500),
-              //                       )),
-              //                   Center(
-              //                       child: Text(
-              //                         "${Limit} litres",
-              //                         style: TextStyle(fontSize: 18,fontWeight: FontWeight.w500),
-              //                       )),
-              //                 ],
-              //               ),
-              //             ),
-              //             LinearPercentIndicator(
-              //               width: MediaQuery.of(context).size.width - 40,
-              //               animation: true,
-              //               lineHeight: 15.0,
-              //               animationDuration: 2000,
-              //               percent: percentage,
-              //               center: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              //                 //key: Key(_uid),
-              //                 stream: FirebaseFirestore.instance
-              //                     .collection('User')
-              //                     .doc(FirebaseAuth.instance.currentUser!.uid)
-              //                     .snapshots(),
-              //                 builder: (context, snapshot) {
-              //                   //print(FirebaseAuth.instance.currentUser!.uid);
-              //                   if (snapshot.hasData) {
-              //                     //String username = snapshot.data?.data()?['username'];
-              //                     currentLimit = int.parse(snapshot.data?.data()?['balanceQuota']);
-              //                     Limit = int.parse(snapshot.data?.data()?['quota']);
-              //                     percentage = (currentLimit*Limit/100);
-              //                     return Text(snapshot.data!['balanceQuota'] + " litres",
-              //                         style: TextStyle(fontSize: 10, color: Colors.grey.shade700));
-              //                   }
-              //                   return Text("0 litres", style: TextStyle(fontSize: 40));
-              //                 },
-              //               ),
-              //               barRadius: const Radius.circular(16),
-              //               progressColor: Colors.red.shade700,
-              //             ),
-              //             Padding(
-              //               padding: const EdgeInsets.all(12.0),
-              //               child: Text(
-              //                 "${currentLimit} litres remaining",
-              //                 style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),
-              //               ),
-              //             ),
-              //           ],
-              //         ),)),
-              ///graph
-
-              Column(
-                children: [
-                  const Center(
-                      child: Text(
-                    "Quota limit",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  )),
-                  const SizedBox(
-                    height: 8.0,
-                  ),
-                  Center(
-                    child:
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      //key: Key(_uid),
-                      stream: FirebaseFirestore.instance
-                          .collection('User')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        //print(FirebaseAuth.instance.currentUser!.uid);
-                        if (snapshot.hasData) {
-                          //String username = snapshot.data?.data()?['username'];
-                          currentLimit =
-                              int.parse(snapshot.data?.data()?['balanceQuota']);
-                          Limit = int.parse(snapshot.data?.data()?['quota']);
-                          percentage = (currentLimit * Limit / 100);
-                          return Text(
-                              snapshot.data!['balanceQuota'] + " litres",
-                              style: TextStyle(fontSize: 40));
-                        }
-                        return Text("0 litres", style: TextStyle(fontSize: 40));
-                      },
-                    ),
-                  ),
-
-                  /// CircularPercentIndicator
-                  // const SizedBox(
-                  //   height: 8.0,
-                  // ),
-                  // Center(
-                  //   child:
-                  //   CircularPercentIndicator(
-                  //     radius: 80.0,
-                  //     lineWidth: 13.0,
-                  //     animation: true,
-                  //     percent: percentage,
-                  //     center: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                  //       //key: Key(_uid),
-                  //       stream: FirebaseFirestore.instance
-                  //           .collection('User')
-                  //           .doc(FirebaseAuth.instance.currentUser!.uid)
-                  //           .snapshots(),
-                  //       builder: (context, snapshot) {
-                  //         //print(FirebaseAuth.instance.currentUser!.uid);
-                  //         if (snapshot.hasData) {
-                  //           //String username = snapshot.data?.data()?['username'];
-                  //           currentLimit = int.parse(snapshot.data?.data()?['balanceQuota']);
-                  //           Limit = int.parse(snapshot.data?.data()?['quota']);
-                  //           percentage = (currentLimit*Limit/100);
-                  //           return Text(snapshot.data!['balanceQuota'] + " litres",
-                  //               style: TextStyle(fontSize: 30));
-                  //         }
-                  //         return Text("0 litres", style: TextStyle(fontSize: 30));
-                  //       },
-                  //     ),
-                  //     circularStrokeCap: CircularStrokeCap.round,
-                  //     progressColor: Colors.red.shade700,
-                  //   ),
-                  //  ),
-                  /// CircularPercentIndicator
-
-                  // const SizedBox(
-                  //   height: 20.0,
-                  // ),
-                  // TextField(
-                  //     enabled: quota ? true : false,
-                  //     controller: _contactNumberController,
-                  //     decoration: InputDecoration(
-                  //       //filled: true,
-                  //       fillColor: const Color(0xFFFFFFFF),
-                  //       isDense: true,
-                  //       border: const OutlineInputBorder(),
-                  //       hintText: 'Enter Token Number',
-                  //       labelText: 'Token Number',
-                  //       errorText:
-                  //       _validateNumber ? 'Number Can\'t Be Empty' : null,
-                  //     )
-                  //     ),
-                  SizedBox(
-                    height: 18.0,
-                  ),
-                  Container(
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(width: 0.5, style: BorderStyle.solid),
-                        borderRadius: BorderRadius.all(Radius.circular(3.0)),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: DropdownButton<Station>(
-                        hint: Text("Select Vehicle"),
-                        value: selectedStation,
-                        onChanged: (Station? newValue) {
-                          setState(() {
-                            selectedStation = newValue!;
-                            stationID = selectedStation.id;
-                            selectedStationName = selectedStation.name;
-                          });
-                          print(selectedStationName);
-                        },
-                        items: station.map((Station vehicles) {
-                          return new DropdownMenuItem<Station>(
-                            value: vehicles,
-                            child: new Text(
-                              vehicles.name,
-                              style: new TextStyle(color: Colors.black),
-                            ),
-                          );
-                        }).toList(),
-                        //borderRadius: BorderRadius.circular(10),
-                        underline: SizedBox(),
-                        isExpanded: true,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 18.0,),
-                  // Container(
-                  //   decoration: ShapeDecoration(
-                  //     shape: RoundedRectangleBorder(
-                  //       side: BorderSide(width: 0.5, style: BorderStyle.solid),
-                  //       borderRadius: BorderRadius.all(Radius.circular(3.0)),
-                  //     ),
-                  //   ),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  //     child:
-                  //                   DropdownButton<String>(
-                  //                     items: <String>[
-                  //                       "Petrol",
-                  //                       "Diesel"
-                  //                     ].map((String value) {
-                  //                       return DropdownMenuItem<String>(
-                  //                         value: value,
-                  //                         child: Text(value),
-                  //                       );
-                  //                     }).toList(),
-                  //                     hint: Text(selectedFuelType.isEmpty
-                  //                         ? 'Fuel type'
-                  //                         : selectedFuelType),
-                  //                     //borderRadius: BorderRadius.circular(10),
-                  //                     underline: SizedBox(),
-                  //                     isExpanded: true,
-                  //                     onChanged: (value) {
-                  //                       if (value != null) {
-                  //                         setState(() {
-                  //                           selectedFuelType = value;
-                  //                         });
-                  //                       }
-                  //                     },
-                  //                   ),
-                  //   ),
-                  // ),
-                  // SizedBox(
-                  //   height: 18.0,
-                  // ),
-                  Form(
-                    key: _formKey,
-                    child: TextFormField(
-                        validator: (value) {
-                          if (value == "0" || value!.isEmpty) {
-                            return 'Please enter a valid amount';
-                          }
-                          return null;
-                        },
-                        enabled: true,
-                        controller: _fuelAmountController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.allow(RegExp(r'[.0-9]')),
-                        ],
-                        decoration: InputDecoration(
-                          //filled: true,
-                          fillColor: const Color(0xFFFFFFFF),
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          hintText: 'Enter fuel amount',
-                          labelText: 'Fuel amount',
-                        )),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Text('Fuel type:', style: TextStyle(fontSize: 16),),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Row(
-                            children: [
-                              Radio(
-                                value: "Petrol",
-                                groupValue: selectedFuelType,
-                                onChanged: (value) {
-                                  setState(() {
-                                    selectedFuelType = value!;
-                                  });
-                                },
-                              ),
-                              const Expanded(child: Text('Petrol'))
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Row(
-                            children: [
-                              Radio(
-                                value: "Diesel",
-                                groupValue: selectedFuelType,
-                                onChanged: (value) {
-                                  setState(() {
-                                    selectedFuelType = value!;
-                                  });
-                                },
-                              ),
-                              const Expanded(child: Text('Diesel'))
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.blueGrey,
-                                textStyle: const TextStyle(fontSize: 15)),
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                if (currentLimit >=
-                                    int.parse(_fuelAmountController.text)) {
-                                  if (requested == false) {
-                                    var dateFormat =
-                                        DateFormat('MM/dd/yyyy hh:mm a');
-                                    var now = dateFormat.format(DateTime.now());
-
-                                    DocumentReference docRef =
-                                        await FirebaseFirestore.instance
-                                            .collection("Requests")
-                                            .add({
-                                      "requested amount":
-                                          _fuelAmountController.text,
-                                      "customerId": FirebaseAuth
-                                          .instance.currentUser!.uid,
-                                      "customerName": Name,
-                                      "Vehicle number": Vnumber,
-                                      "Status": "Pending",
-                                      "Token": "Pending",
-                                      "Requested time": now.toString(),
-                                      "DateAndTime": "Pending",
-                                      "stationID": stationID,
-                                      "stationName": selectedStationName,
-                                      "Ordered": false,
-                                      "fuelType": selectedFuelType,
-                                    });
-                                    print(Name);
-                                    String docId = docRef.id;
-                                    await FirebaseFirestore.instance
-                                        .collection("Requests")
-                                        .doc(docId)
-                                        .update({'id': docId});
-                                    currentLimit = currentLimit -
-                                        int.parse(_fuelAmountController.text);
-
-                                    await FirebaseFirestore.instance
-                                        .collection("User")
-                                        .doc(FirebaseAuth
-                                            .instance.currentUser!.uid)
-                                        .update({
-                                      'Requested': "Yes",
-                                      'balanceQuota': currentLimit.toString(),
-                                      'Last requested': now.toString(),
-                                      "DateAndTime": "Pending",
-                                      "Token": "Pending",
-                                      "requested amount":
-                                          _fuelAmountController.text,
-                                      "Requested Station": selectedStationName,
-                                      "Rescheduled Date": "null",
-                                    });
-                                    setState(() {
-                                      requested = true;
-                                    });
-                                  } else {
-                                    requestedDialog();
-                                  }
-                                } else {
-                                  ShowDialog();
-                                }
-                                //ShowDialog();
-                                // FirebaseFirestore.instance.collection("Requests")//     //.doc(FirebaseAuth.instance.currentUser!.uid)
-                                //     .add({
-                                //   "requested amount": _fuelAmountController.text,
-                                //   "customerId":
-                                //       FirebaseAuth.instance.currentUser!.uid,
-                                //   "customerName": Name,
-                                //   "Vehicle number": Vnumber,
-                                //   "Status": "Pending",
-                                // "Token": "Pending"
-                                // });
-                                // setState(() {});
-                                _fuelAmountController.text = "";
-                              }
-                            },
-                            child: const Text('Request fuel')),
-                      ),
-                      // const SizedBox(
-                      //   width: 10.0,
-                      // ),
-                      // Expanded(
-                      //     child: TextButton(
-                      //         style: TextButton.styleFrom(
-                      //             foregroundColor: Colors.white,
-                      //             backgroundColor: Colors.red,
-                      //             textStyle: const TextStyle(fontSize: 15)),
-                      //         onPressed: () {
-                      //           _contactNameController.text = '';
-                      //           _contactNumberController.text = '';
-                      //           _contactEmailController.text = '';
-                      //         },
-                      //         child: const Text('Clear')))
+              Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 2.0,
+                        spreadRadius: 1.0,
+                        offset:
+                            Offset(2.0, 2.0), // shadow direction: bottom right
+                      )
                     ],
                   ),
-                  // SizedBox(
-                  //   height: 750,
-                  //   child: IconButton(
-                  //       style: TextButton.styleFrom(
-                  //           foregroundColor: Colors.white,
-                  //           backgroundColor: Colors.blueGrey,
-                  //           textStyle: const TextStyle(fontSize: 15)),
-                  //       onPressed: () async {
-                  //         FirebaseAuth.instance.signOut();
-                  //       },
-                  //       icon: Icon(Icons.logout),
-                  //       //child: const Text('Sign Out')),
-                  // ),
-                  // )
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Center(
+                                child: Text(
+                              "Quota limit",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                            )),
+                            Center(
+                                child: Text(
+                              "${Limit} litres",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                            )),
+                          ],
+                        ),
+                      ),
+                      LinearPercentIndicator(
+                        width: MediaQuery.of(context).size.width - 40,
+                        animation: true,
+                        lineHeight: 15.0,
+                        animationDuration: 2000,
+                        percent: percentage,
+                        center: StreamBuilder<
+                            DocumentSnapshot<Map<String, dynamic>>>(
+                          //key: Key(_uid),
+                          stream: FirebaseFirestore.instance
+                              .collection('User')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            //print(FirebaseAuth.instance.currentUser!.uid);
+                            if (snapshot.hasData) {
+                              //String username = snapshot.data?.data()?['username'];
+                              currentLimit = int.parse(
+                                  snapshot.data?.data()?['balanceQuota']);
+                              Limit =
+                                  int.parse(snapshot.data?.data()?['quota']);
+                              percentage = (currentLimit * Limit / 100);
+                              return Text(
+                                  snapshot.data!['balanceQuota'] + " litres",
+                                  style: TextStyle(
+                                      fontSize: 10, color: Colors.transparent));
+                            }
+                            return Text("0 litres",
+                                style: TextStyle(
+                                    fontSize: 10, color: Colors.transparent));
+                          },
+                        ),
+                        barRadius: const Radius.circular(16),
+                        progressColor: Colors.red.shade700,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          "${currentLimit} litres remaining",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  )),
+
+              ///graph
+
+              //requested ? SizedBox.shrink() :
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 10.0,
+                      ),
+                      Text("Request fuel",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 2.0,
+                            spreadRadius: 1.0,
+                            offset: Offset(
+                                2.0, 2.0), // shadow direction: bottom right
+                          )
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Container(
+                              decoration: ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      width: 0.5, style: BorderStyle.solid),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(3.0)),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 15.0),
+                                child: DropdownButton<Station>(
+                                  hint: Text("Select station"),
+                                  value: selectedStation,
+                                  onChanged: (Station? newValue) {
+                                    setState(() {
+                                      selectedStation = newValue!;
+                                      stationID = selectedStation.id;
+                                      selectedStationName =
+                                          selectedStation.name;
+                                    });
+                                    print(selectedStationName);
+                                  },
+                                  items: station.map((Station vehicles) {
+                                    return new DropdownMenuItem<Station>(
+                                      value: vehicles,
+                                      child: new Text(
+                                        vehicles.name,
+                                        style:
+                                            new TextStyle(color: Colors.black),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  //borderRadius: BorderRadius.circular(10),
+                                  underline: SizedBox(),
+                                  isExpanded: true,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 18.0,
+                            ),
+                            Form(
+                              key: _formKey,
+                              child: TextFormField(
+                                  validator: (value) {
+                                    if (value == "0" || value!.isEmpty) {
+                                      return 'Please enter a valid amount';
+                                    }
+                                    return null;
+                                  },
+                                  enabled: true,
+                                  controller: _fuelAmountController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'[.0-9]')),
+                                  ],
+                                  decoration: InputDecoration(
+                                    //filled: true,
+                                    fillColor: const Color(0xFFFFFFFF),
+                                    isDense: true,
+                                    border: OutlineInputBorder(),
+                                    hintText: 'Enter fuel amount',
+                                    labelText: 'Fuel amount',
+                                  )),
+                            ),
+                            SizedBox(
+                              height: 10.0,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 5.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Fuel type:',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Row(
+                                      children: [
+                                        Radio(
+                                          value: "Petrol",
+                                          groupValue: selectedFuelType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedFuelType = value!;
+                                            });
+                                          },
+                                        ),
+                                        const Expanded(child: Text('Petrol'))
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Row(
+                                      children: [
+                                        Radio(
+                                          value: "Diesel",
+                                          groupValue: selectedFuelType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedFuelType = value!;
+                                            });
+                                          },
+                                        ),
+                                        const Expanded(child: Text('Diesel'))
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 10.0,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                      style: TextButton.styleFrom(
+                                          foregroundColor: Colors.white,
+                                          backgroundColor: Colors.blueGrey,
+                                          textStyle:
+                                              const TextStyle(fontSize: 15)),
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          if (currentLimit >=
+                                              int.parse(
+                                                  _fuelAmountController.text)) {
+                                            if (requested == false) {
+                                              var dateFormat = DateFormat(
+                                                  'MM/dd/yyyy hh:mm a');
+                                              var now = dateFormat
+                                                  .format(DateTime.now());
+
+                                              DocumentReference docRef =
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection("Requests")
+                                                      .add({
+                                                "requested amount":
+                                                    _fuelAmountController.text,
+                                                "customerId": FirebaseAuth
+                                                    .instance.currentUser!.uid,
+                                                "customerName": Name,
+                                                "Vehicle number": Vnumber,
+                                                "Status": "Pending",
+                                                "Token": "Pending",
+                                                "Requested time":
+                                                    now.toString(),
+                                                "DateAndTime": "Pending",
+                                                "stationID": stationID,
+                                                "stationName":
+                                                    selectedStationName,
+                                                "Ordered": false,
+                                                "fuelType": selectedFuelType,
+                                              });
+                                              print(Name);
+                                              String docId = docRef.id;
+                                              await FirebaseFirestore.instance
+                                                  .collection("Requests")
+                                                  .doc(docId)
+                                                  .update({'id': docId});
+                                              currentLimit = currentLimit -
+                                                  int.parse(
+                                                      _fuelAmountController
+                                                          .text);
+
+                                              await FirebaseFirestore.instance
+                                                  .collection("User")
+                                                  .doc(FirebaseAuth.instance
+                                                      .currentUser!.uid)
+                                                  .update({
+                                                'Requested': "Yes",
+                                                'balanceQuota':
+                                                    currentLimit.toString(),
+                                                'Last requested':
+                                                    now.toString(),
+                                                "DateAndTime": "Pending",
+                                                "Token": "Pending",
+                                                "requested amount":
+                                                    _fuelAmountController.text,
+                                                "Requested Station":
+                                                    selectedStationName,
+                                                "Rescheduled Date": "null",
+                                              });
+                                              setState(() {
+                                                requested = true;
+                                              });
+                                            } else {
+                                              requestedDialog();
+                                            }
+                                          } else {
+                                            ShowDialog();
+                                          }
+                                          //ShowDialog();
+                                          // FirebaseFirestore.instance.collection("Requests")//     //.doc(FirebaseAuth.instance.currentUser!.uid)
+                                          //     .add({
+                                          //   "requested amount": _fuelAmountController.text,
+                                          //   "customerId":
+                                          //       FirebaseAuth.instance.currentUser!.uid,
+                                          //   "customerName": Name,
+                                          //   "Vehicle number": Vnumber,
+                                          //   "Status": "Pending",
+                                          // "Token": "Pending"
+                                          // });
+                                          // setState(() {});
+                                          _fuelAmountController.text = "";
+                                        }
+                                      },
+                                      child: const Text('Request fuel')),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )),
                 ],
-              ),
+              )
             ],
           ),
         ),
