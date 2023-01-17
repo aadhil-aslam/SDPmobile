@@ -16,41 +16,42 @@ class Registration extends StatefulWidget {
 }
 
 class _RegistrationState extends State<Registration> {
+  bool _validateEmail = false;
+  bool _validateName = false;
+  bool _validateVno = false;
+  bool _validatePW = false;
+
   Future<void> createUserWithEmailAndPassword() async {
     //final fcmToken = FirebaseMessaging.instance.getToken();
     try {
-
       final fcmToken = await FirebaseMessaging.instance.getToken();
 
       await Auth().createUserWithEmailAndPassword(
           email: _emailController.text, password: _passwordController.text);
-          FirebaseFirestore.instance
-              .collection("User")
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .set({
-            "username": _NameController.text,
-            "email": _emailController.text,
-            "Vehicle Number": _vehicleNumberController.text,
-            "Vehicle type": selectedCategory,
-            "quota": quotaLimit,
-            "balanceQuota": quotaLimit,
-            "Token": "Pending",
-            "Last requested": "null",
-            "Requested": "No",
-            "DeviceToken" : fcmToken,
-            "DateAndTime" : "Pending",
-            "requested amount": "null",
-            "Requested Station": "null",
-            "Rescheduled Date":
-            "null",
-          });
+      FirebaseFirestore.instance
+          .collection("User")
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .set({
+        "username": _NameController.text,
+        "email": _emailController.text,
+        "Vehicle Number": _vehicleNumberController.text,
+        "Vehicle type": selectedCategory,
+        "quota": quotaLimit,
+        "balanceQuota": quotaLimit,
+        "Token": "Pending",
+        "Last requested": "null",
+        "Requested": "No",
+        "DeviceToken": fcmToken,
+        "DateAndTime": "Pending",
+        "requested amount": "null",
+        "Requested Station": "null",
+        "Rescheduled Date": "null",
+      });
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomeCustomer()));
+          context, MaterialPageRoute(builder: (context) => HomeCustomer()));
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _showSuccessSnackbar(e.toString());
+        _showSuccessSnackbar(e.message.toString());
         errorMessage = e.message;
       });
     }
@@ -75,10 +76,6 @@ class _RegistrationState extends State<Registration> {
   Widget _errorMessage() {
     return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
   }
-
-  //
-  // bool _validateName = false;
-  bool _validateNumber = false;
 
   bool quota = false;
 
@@ -156,37 +153,21 @@ class _RegistrationState extends State<Registration> {
               ),
               Column(
                 children: [
-                  // const SizedBox(
-                  //   height: 20.0,
-                  // ),
-                  // TextField(
-                  //     enabled: quota ? true : false,
-                  //     controller: _contactNumberController,
-                  //     decoration: InputDecoration(
-                  //       //filled: true,
-                  //       fillColor: const Color(0xFFFFFFFF),
-                  //       isDense: true,
-                  //       border: const OutlineInputBorder(),
-                  //       hintText: 'Enter Token Number',
-                  //       labelText: 'Token Number',
-                  //       errorText:
-                  //       _validateNumber ? 'Number Can\'t Be Empty' : null,
-                  //     )),
                   SizedBox(
                     height: 18.0,
                   ),
                   TextField(
                       //enabled: quota ? true : false,
                       controller: _NameController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
                         isDense: true,
                         border: OutlineInputBorder(),
                         hintText: 'Enter Name',
                         labelText: 'Name',
-                        // errorText:
-                        //      'Name Can\'t be Empty'
+                        errorText:
+                            _validateName ? 'Name Can\'t Be Empty' : null,
                       )),
                   SizedBox(
                     height: 18.0,
@@ -194,15 +175,15 @@ class _RegistrationState extends State<Registration> {
                   TextField(
                       //enabled: quota ? true : false,
                       controller: _vehicleNumberController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
                         isDense: true,
                         border: OutlineInputBorder(),
                         hintText: 'Enter Vehicle Number',
                         labelText: 'Vehicle Number',
-                        // errorText:
-                        // 'Number Can\'t be Empty'
+                        errorText:
+                            _validateVno ? 'Vehicle Number Can\'t Be Empty' : null,
                       )),
                   SizedBox(
                     height: 18.0,
@@ -240,34 +221,6 @@ class _RegistrationState extends State<Registration> {
                         underline: SizedBox(),
                         isExpanded: true,
                       ),
-                      //               DropdownButton<String>(
-                      //                 items: <String>[
-                      //                   "Bike",
-                      //                   "Car",
-                      //                   "Van",
-                      //                   "Lorry",
-                      //                   "Bus",
-                      //                   "Three wheeler"
-                      //                 ].map((String value) {
-                      //                   return DropdownMenuItem<String>(
-                      //                     value: value,
-                      //                     child: Text(value),
-                      //                   );
-                      //                 }).toList(),
-                      //                 hint: Text(selectedCategory.isEmpty
-                      //                     ? 'Vehicle type'
-                      //                     : selectedCategory),
-                      //                 //borderRadius: BorderRadius.circular(10),
-                      //                 underline: SizedBox(),
-                      //                 isExpanded: true,
-                      //                 onChanged: (value) {
-                      //                   if (value != null) {
-                      //                     setState(() {
-                      //                       selectedCategory = value;
-                      //                     });
-                      //                   }
-                      //                 },
-                      //               ),
                     ),
                   ),
                   SizedBox(
@@ -276,15 +229,15 @@ class _RegistrationState extends State<Registration> {
                   TextField(
                       //enabled: quota ? true : false,
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
                         isDense: true,
                         border: OutlineInputBorder(),
                         hintText: 'Enter Email',
                         labelText: 'Email',
-                        // errorText:
-                        // 'Email Can\'t be Empty'
+                        errorText:
+                            _validateEmail ? 'Email Can\'t Be Empty' : null,
                       )),
                   SizedBox(
                     height: 18.0,
@@ -293,15 +246,14 @@ class _RegistrationState extends State<Registration> {
                       obscureText: true,
                       //enabled: quota ? true : false,
                       controller: _passwordController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         //filled: true,
                         fillColor: const Color(0xFFFFFFFF),
                         isDense: true,
                         border: OutlineInputBorder(),
                         hintText: 'Enter Password',
                         labelText: 'Password',
-                        // errorText:
-                        // 'Email Can\'t be Empty'
+                        errorText: _validatePW ? 'Password Can\'t Be Empty' : null,
                       )),
                   SizedBox(
                     height: 10.0,
@@ -318,50 +270,29 @@ class _RegistrationState extends State<Registration> {
                             onPressed: () {
                               final fcmToken =
                                   FirebaseMessaging.instance.getToken();
-                              // auth
-                              //     .createUserWithEmailAndPassword(
-                              //         email: _emailController.text,
-                              //         password: _passwordController.text)
-                              //     .then((value) {
-                              //   FirebaseFirestore.instance
-                              //       .collection("User")
-                              //       .doc(value.user!.uid)
-                              //       .set({
-                              //     "username": _NameController.text,
-                              //     "email": _emailController.text,
-                              //     "Vehicle Number":
-                              //         _vehicleNumberController.text,
-                              //     "Vehicle type": selectedCategory,
-                              //     "quota": quotaLimit,
-                              //     "Token": "Pending",
-                              //     "Last requested": "null",
-                              //     "Requested": "No",
-                              //     "DeviceToken": fcmToken,
-                              //   });
-                              // });
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) => HomeCustomer()));
-                              createUserWithEmailAndPassword();
+                              setState(() {
+                                _emailController.text.isEmpty
+                                    ? _validateEmail = true
+                                    : _validateEmail = false;
+                                _passwordController.text.isEmpty
+                                    ? _validatePW = true
+                                    : _validatePW = false;
+                                _NameController.text.isEmpty
+                                    ? _validateName = true
+                                    : _validateName = false;
+                                _vehicleNumberController.text.isEmpty
+                                    ? _validateVno = true
+                                    : _validateVno = false;
+                              });
+                              if (_validatePW == false &&
+                                  _validateEmail == false &&
+                                  _validateVno == false &&
+                                  _validateName == false) {
+                                createUserWithEmailAndPassword();
+                              }
                             },
                             child: const Text('Sign up')),
                       ),
-                      // const SizedBox(
-                      //   width: 10.0,
-                      // ),
-                      // Expanded(
-                      //     child: TextButton(
-                      //         style: TextButton.styleFrom(
-                      //             foregroundColor: Colors.white,
-                      //             backgroundColor: Colors.red,
-                      //             textStyle: const TextStyle(fontSize: 15)),
-                      //         onPressed: () {
-                      //           _contactNameController.text = '';
-                      //           _contactNumberController.text = '';
-                      //           _contactEmailController.text = '';
-                      //         },
-                      //         child: const Text('Clear')))
                     ],
                   ),
                   Row(

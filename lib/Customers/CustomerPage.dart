@@ -424,12 +424,12 @@ class _CustomerPageState extends State<CustomerPage> {
                   // ),
                   Expanded(
                     child:
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                       //key: Key(_uid),
-                      stream: FirebaseFirestore.instance
+                      future: FirebaseFirestore.instance
                           .collection('User')
                           .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .snapshots(),
+                          .get(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           //String username = snapshot.data?.data()?['username'];
@@ -519,12 +519,12 @@ class _CustomerPageState extends State<CustomerPage> {
                   const SizedBox(
                     width: 10.0,
                   ),
-                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     //key: Key(_uid),
-                    stream: FirebaseFirestore.instance
+                    future: FirebaseFirestore.instance
                         .collection('User')
                         .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .snapshots(),
+                        .get(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         //String username = snapshot.data?.data()?['username'];
@@ -751,7 +751,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                                             FontWeight.w500),
                                                   );
                                                 }
-                                                return Text("Time'",
+                                                return Text("Time",
                                                     style: TextStyle(
                                                         fontSize: 20));
                                               },
@@ -1058,6 +1058,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                                 "Requested time":
                                                     now.toString(),
                                                 "DateAndTime": "Pending",
+                                                "TokenDate": "Pending",
                                                 "stationID": stationID,
                                                 "stationName":
                                                     selectedStationName,
@@ -1086,6 +1087,7 @@ class _CustomerPageState extends State<CustomerPage> {
                                                 'Last requested':
                                                     now.toString(),
                                                 "DateAndTime": "Pending",
+                                                "TokenDate": "Pending",
                                                 "Token": "Pending",
                                                 "requested amount":
                                                     _fuelAmountController.text,
