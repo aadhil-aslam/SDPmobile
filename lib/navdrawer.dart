@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'Customers/customer.dart';
-import 'Station/second_2.dart';
+import 'Station/station.dart';
 
 class NavDrawer extends StatelessWidget {
   @override

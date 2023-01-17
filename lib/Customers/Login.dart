@@ -70,10 +70,6 @@ class _LoginState extends State<Login> {
     return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
   }
 
-  var _contactNameController = TextEditingController();
-  var _contactNumberController = TextEditingController();
-  var _contactEmailController = TextEditingController();
-
   bool quota = false;
 
   bool free = true;
