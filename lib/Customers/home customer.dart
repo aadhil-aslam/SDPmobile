@@ -25,7 +25,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: NavDrawer(),
+      // drawer: NavDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.red[700],
         title: const Text(
