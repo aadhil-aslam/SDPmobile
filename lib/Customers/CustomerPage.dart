@@ -383,7 +383,7 @@ class _CustomerPageState extends State<CustomerPage> {
     DeviceToken();
     return Scaffold(
       //backgroundColor: Colors.grey[200],
-      drawer: NavDrawer(),
+      // drawer: NavDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.red[700],
         title: const Text(

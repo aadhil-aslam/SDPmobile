@@ -4,9 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sdp/Customers/home%20customer.dart';
-
 import '../auth.dart';
-import 'Login.dart';
 
 class Registration extends StatefulWidget {
   Registration({Key? key}) : super(key: key);
