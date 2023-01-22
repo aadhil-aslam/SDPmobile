@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:sdp/Customers/CustomerPage.dart';
-import 'package:sdp/Customers/registration.dart';
+import 'package:sdp/customer_pages/auth/registration.dart';
 
-import '../auth.dart';
+import '../../firebase/auth.dart';
+import '../CustomerPage.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -66,10 +66,6 @@ class _LoginState extends State<Login> {
     }
   }
 
-  Widget _errorMessage() {
-    return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
-  }
-
   bool quota = false;
 
   bool free = true;
@@ -77,25 +73,6 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //   appBar: AppBar(
-      //   backgroundColor: Colors.red[700],
-      //   title: const Text(
-      //     'PowerFuel ',
-      //     style: TextStyle(color: Colors.white),
-      //   ),
-      //   // actions: <Widget>[
-      //   //   IconButton(
-      //   //     icon: const Icon(
-      //   //         Icons.search),
-      //   //     onPressed: () {
-      //   //       setState(() {
-      //   //       });
-      //   //     },
-      //   //   ),
-      //   // ],
-      //   //centerTitle: true,
-      //   elevation: 0.0,
-      // ),
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(18.0),

@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sdp/Customers/home%20customer.dart';
-import '../auth.dart';
+import '../../firebase/auth.dart';
+import '../../firebase/firebase_services.dart';
+import '../home customer.dart';
 
 class Registration extends StatefulWidget {
   Registration({Key? key}) : super(key: key);
@@ -14,6 +15,8 @@ class Registration extends StatefulWidget {
 }
 
 class _RegistrationState extends State<Registration> {
+  FirebaseServices _firebaseServices = FirebaseServices();
+
   bool _validateEmail = false;
   bool _validateName = false;
   bool _validateVno = false;
@@ -113,6 +116,7 @@ class _RegistrationState extends State<Registration> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.red[700],
         title: const Text(
           'PowerFuel ',

@@ -3,8 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:sdp/Customers/home%20customer.dart';
-import 'Customers/CustomerPage.dart';
+import 'customer_pages/CustomerPage.dart';
+import 'customer_pages/home customer.dart';
+import 'firebase/firebase_services.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -43,10 +44,12 @@ void main() async {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
+  FirebaseServices _firebaseServices = FirebaseServices();
+
   late bool isLoggedIn = true;
 
   CheckLogin() {
-    if (FirebaseAuth.instance.currentUser?.uid != null) {
+    if (_firebaseServices.getUserId() != null) {
       print(FirebaseAuth.instance.currentUser?.uid);
       isLoggedIn = true;
     } else {

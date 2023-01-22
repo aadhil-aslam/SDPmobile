@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ionicons/ionicons.dart';
-
-import '../navdrawer.dart';
 
 class SecondTwo extends StatefulWidget {
   const SecondTwo({Key? key}) : super(key: key);
@@ -111,7 +107,7 @@ class _SecondTwoState extends State<SecondTwo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: NavDrawer(),
+      // drawer: NavDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.red[700],
         title: const Text(
